@@ -1,0 +1,8 @@
+name = Kala Migrate
+description = This module helps with the winning to migrate the site to D8.
+package = Kalamuna
+core = 7.x
+version = 7.x-0.1
+dependencies[] = ctools
+
+configure = admin/config/development/kala_migrate

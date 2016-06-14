@@ -1,0 +1,12 @@
+<?php
+/**
+ * Install file for Kala Migrate.
+ */
+
+/**
+ * Implements hook_enable().
+ */
+function kala_migrate_enable() {
+  // So the hook_menu items shows up.
+  drupal_flush_all_caches();
+}

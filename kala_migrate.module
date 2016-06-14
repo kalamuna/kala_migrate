@@ -1,0 +1,74 @@
+<?php
+/**
+ * Module file for Kala Migrate.
+ */
+
+/**
+ * Implements hook_menu().
+ */
+function kala_migrate_menu() {
+  $items = array();
+
+  $items['admin/config/development/kala_migrate'] = array(
+    'type' => MENU_NORMAL_ITEM,
+    'title' => t('Kala Migrate Settings'),
+    'description' => t('Setting to Automate Migration to Drupal 8.'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('_kala_migrate_settings_form'),
+    'access callback' => TRUE,
+  );
+
+  return $items;
+}
+
+/**
+ * hook_menu Page Callback.
+ */
+function _kala_migrate_settings_form() {
+  $form['content_types'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Get all Content Types and Fields Associated with them?'),
+  );
+
+  $form['#submit'][] = '_kala_migrate_settings_form_submit';
+
+  return system_settings_form($form);
+}
+
+/**
+ * Submit handler for form.
+ */
+function _kala_migrate_settings_form_submit($form, &$form_state) {
+
+  // Handle the CSV.
+  header('Content-Encoding: UTF-8');
+  header('Content-type: text/csv; charset=UTF-8');
+  header('Content-Disposition: attachment; filename=migrate.csv');
+  $f = fopen('php://output', 'w');
+
+  if ($form_state['values']['content_types']) {
+    $headers[0] = 'Type';
+    $headers[1] = 'Field Name';
+    $headers[2] = 'Field Machine Name';
+
+    // print headers to CSV
+    fputcsv($f, $headers);
+    // Grab all Content Types
+    $types = node_type_get_types();
+    foreach ($types as $type) {
+      // Grab all the fields of the type.
+      $fields = field_info_instances('node', $type->type);
+      foreach ($fields as $field) {
+        $body['Type'] = $type->type;
+        $body['Field Name'] = $field['label'];
+        $body['Field Machine Name'] = $field['field_name'];
+        // throw it in the file meow.
+        fputcsv($f, $body);
+      }
+
+    }
+  }
+  // Close this and trill this out.
+  fclose($f);
+  exit;
+}
