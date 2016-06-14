@@ -47,9 +47,10 @@ function _kala_migrate_settings_form_submit($form, &$form_state) {
   $f = fopen('php://output', 'w');
 
   if ($form_state['values']['content_types']) {
-    $headers[0] = 'Type';
-    $headers[1] = 'Field Name';
-    $headers[2] = 'Field Machine Name';
+    $headers[0] = 'Type Name';
+    $headers[1] = 'Type Machine Name';
+    $headers[2] = 'Field Name';
+    $headers[3] = 'Field Machine Name';
 
     // print headers to CSV
     fputcsv($f, $headers);
@@ -59,13 +60,13 @@ function _kala_migrate_settings_form_submit($form, &$form_state) {
       // Grab all the fields of the type.
       $fields = field_info_instances('node', $type->type);
       foreach ($fields as $field) {
-        $body['Type'] = $type->type;
+        $body['Type Name'] = $type->name;
+        $body['Type Machine Name'] = $type->type;
         $body['Field Name'] = $field['label'];
         $body['Field Machine Name'] = $field['field_name'];
         // throw it in the file meow.
         fputcsv($f, $body);
       }
-
     }
   }
   // Close this and trill this out.
