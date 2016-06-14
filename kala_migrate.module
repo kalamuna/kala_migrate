@@ -51,6 +51,8 @@ function _kala_migrate_settings_form_submit($form, &$form_state) {
     $headers[1] = 'Type Machine Name';
     $headers[2] = 'Field Name';
     $headers[3] = 'Field Machine Name';
+    $headers[4] = 'Field Type';
+    $headers[5] = 'Field Required?';
 
     // print headers to CSV
     fputcsv($f, $headers);
@@ -60,10 +62,14 @@ function _kala_migrate_settings_form_submit($form, &$form_state) {
       // Grab all the fields of the type.
       $fields = field_info_instances('node', $type->type);
       foreach ($fields as $field) {
+        // Load in widget info for labels.
+        $widget = field_info_widget_types($field['widget']['type']);
         $body['Type Name'] = $type->name;
         $body['Type Machine Name'] = $type->type;
         $body['Field Name'] = $field['label'];
         $body['Field Machine Name'] = $field['field_name'];
+        $body['Field Type'] = $widget['label'];
+        $body['Field Required?'] = $field['required'] ? 'Y' : 'N';
         // throw it in the file meow.
         fputcsv($f, $body);
       }
