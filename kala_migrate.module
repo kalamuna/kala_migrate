@@ -27,8 +27,14 @@ function kala_migrate_menu() {
 function _kala_migrate_settings_form() {
   $form['content_types'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Get all Content Types and Fields Associated with them?'),
+    '#title' => t('Get All Content Types and the Fields Associated With Them?'),
   );
+
+  $form['image_styles'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Get all Image Styles and Settings?'),
+  );
+
 
   $form['#submit'][] = '_kala_migrate_settings_form_submit';
 
@@ -39,14 +45,15 @@ function _kala_migrate_settings_form() {
  * Submit handler for form.
  */
 function _kala_migrate_settings_form_submit($form, &$form_state) {
+  $files = array();
 
-  // Handle the CSV.
-  header('Content-Encoding: UTF-8');
-  header('Content-type: text/csv; charset=UTF-8');
-  header('Content-Disposition: attachment; filename=migrate.csv');
-  $f = fopen('php://output', 'w');
-
+  // The Content Type & Fields Settings.
   if ($form_state['values']['content_types']) {
+    // Open The CSV
+    $f = fopen('node-type-n-fields.csv', 'w');
+    // Clear out vars.
+    $headers = $body = array();
+
     $headers[0] = 'Type Name';
     $headers[1] = 'Type Machine Name';
     $headers[2] = 'Field Name';
@@ -121,8 +128,74 @@ function _kala_migrate_settings_form_submit($form, &$form_state) {
         fputcsv($f, $body);
       }
     }
+
+    // Close this and trill this out.
+    fclose($f);
+    $files[] = 'node-type-n-fields.csv';
   }
-  // Close this and trill this out.
-  fclose($f);
+
+  // The Image Styles & Settings.
+  if ($form_state['values']['image_styles']) {
+    // Open The CSV
+    $f = fopen('image-styles.csv', 'w');
+    // Clear out vars.
+    $headers = $body = array();
+
+    $headers[0] = 'Style Name';
+    $headers[1] = 'Style Machine Name';
+    $headers[2] = 'Effect';
+    $headers[3] = 'Settings';
+
+    // print headers to CSV
+    fputcsv($f, $headers);
+    $styles = image_styles();
+
+    foreach ($styles as $style) {
+      $body['Style Name'] = $style['label'];
+      $body['Style Machine Name'] = $style['name'];
+      $body['Effect'] = '';
+      $body['Settings'] = '';
+
+      // throw it in the file meow.
+      fputcsv($f, $body);
+
+      // Blank Columns To tab this sort of.
+      $body['Style Name'] = '';
+      $body['Style Machine Name'] = '';
+      foreach ($style['effects'] as $effect) {
+        $body['Effect'] = $effect['label'];
+        $settings = '';
+        foreach ($effect['data'] as $key => $data) {
+          $settings .= '"' . $key . ' = ' . $data . '", ';
+        }
+        $body['Settings'] = $settings;
+
+        // throw it in the file meow.
+        fputcsv($f, $body);
+      }
+
+    }
+    // Close this and trill this out.
+    fclose($f);
+    $files[] = 'image-styles.csv';
+  }
+
+  // If there are files, lets do this!
+  if (count($files) > 0) {
+    $zipname = 'migrate.zip';
+    $zip = new ZipArchive;
+    $zip->open($zipname, ZipArchive::CREATE);
+    foreach ($files as $file) {
+      $zip->addFile($file);
+    }
+    $zip->close();
+
+    header('Content-Type: application/zip');
+    header('Content-disposition: attachment; filename='.$zipname);
+    header('Content-Length: ' . filesize($zipname));
+    readfile($zipname);
+  }
+
+  // Get to the chopper!
   exit;
 }
