@@ -16,9 +16,9 @@ require_once dirname(__FILE__) . '/includes/YOURFILE.inc';
 
 3. In the /includes/YOURFILE.inc file add this:
 ```
-function _kala_migrate_FUNCTION_NAME($name) {
+function _kala_migrate_FUNCTION_NAME($filename) {
   // Open The CSV
-  $f = fopen($name, 'w');
+  $f = fopen($filename, 'w');
   // Clear out vars.
   $headers = $body = array();
 
@@ -35,7 +35,7 @@ function _kala_migrate_FUNCTION_NAME($name) {
   fclose($f);
 
   // Return File Name
-  return $name;
+  return $filename;
 }
 ```
 
