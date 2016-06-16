@@ -6,7 +6,8 @@
 /**
  * Creates the Zip File.
  *
- * @param  array $files Array of Files
+ * @param  array $files
+ *  The Array of Files defined by other processes.
  */
 function _kala_migrate_create_zip($files) {
   // File name for this fancy zip.

@@ -7,6 +7,8 @@
 require_once dirname(__FILE__) . '/includes/content_types.inc';
 require_once dirname(__FILE__) . '/includes/fields.inc';
 require_once dirname(__FILE__) . '/includes/image_styles.inc';
+require_once dirname(__FILE__) . '/includes/menus.inc';
+require_once dirname(__FILE__) . '/includes/vocab.inc';
 require_once dirname(__FILE__) . '/includes/zip.inc';
 
 /**
@@ -25,6 +27,16 @@ function kala_migrate_menu() {
   );
 
   return $items;
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function kala_migrate_form_alter(&$form, &$form_state, $form_id) {
+  // We have to change the submit button text in the HFA.
+  if ($form_id == '_kala_migrate_settings_form') {
+    $form['actions']['submit']['#value'] = 'Download ZIP';
+  }
 }
 
 /**
@@ -50,6 +62,17 @@ function _kala_migrate_settings_form() {
     '#default_value' => 1,
   );
 
+  $form['menus'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Get all the Menu Settings?'),
+    '#default_value' => 1,
+  );
+
+  $form['vocab'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Get all the Taxonomy Vocabulary Settings?'),
+    '#default_value' => 1,
+  );
 
   $form['#submit'][] = '_kala_migrate_settings_form_submit';
 
@@ -75,6 +98,16 @@ function _kala_migrate_settings_form_submit($form, &$form_state) {
   // The Image Styles & Settings.
   if ($form_state['values']['image_styles']) {
     $files[] = _kala_migrate_image_styles('image-styles.csv');
+  }
+
+  // The Menus Settings.
+  if ($form_state['values']['menus']) {
+    $files[] = _kala_migrate_menus('menus.csv');
+  }
+
+  // The Taxonomy Vocabulary Settings.
+  if ($form_state['values']['vocab']) {
+    $files[] = _kala_migrate_vocab('vocab.csv');
   }
 
   // If there are files, lets do this!

@@ -6,8 +6,11 @@
 /**
  * Image Styles Processing function.
  *
- * @param  string $filename file name
- * @return string       file name
+ * @param  string $filename
+ *   The file name for this function.
+ *
+ * @return string
+ *   The file name for this function.
  */
 function _kala_migrate_image_styles($filename) {
   // Open The CSV

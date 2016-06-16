@@ -4,11 +4,16 @@
  * Fields Functions.
  */
 
+require_once dirname(__FILE__) . '/functions.inc';
+
 /**
  * Fields Processing function.
  *
- * @param  string $filename file name
- * @return string       file name
+ * @param  string $filename
+ *   The file name for this function.
+ *
+ * @return string
+ *   The file name for this function.
  */
 function _kala_migrate_fields($filename) {
   // Open The CSV
@@ -56,20 +61,8 @@ function _kala_migrate_fields($filename) {
                  $field['default_value'][0]['value'] : '';
 
       // Grab the settings if they exist.
-      $settings = '';
       if (isset($field['widget']['settings'])) {
-        foreach ($field['widget']['settings'] as $key => $value) {
-          // Fixes file settings and other things like that.
-          if (is_array($value)) {
-            $flatvalue = '{';
-            foreach ($value as $key2 => $value2) {
-              $flatvalue .= '"' . $key2 . ' = ' . $value2 . '", ';
-            }
-            $value = rtrim($flatvalue, -2) . '}';
-          }
-          // Throw the settings into a happu string.
-          $settings .= '"' . $key . ' = ' . $value . '", ';
-        }
+        $settings = _kala_migrate_get_field_settings($field['widget']['settings']);
       }
 
       // Add the fields to the array to be added to the sheet.
@@ -78,7 +71,7 @@ function _kala_migrate_fields($filename) {
       $body['Field Type'] = ucwords($field_type);
       $body['Field Required?'] = $field['required'] ? 'Y' : 'N';
       $body['# of Values Allowed'] = $nval;
-      $body['Field Settings'] = $settings;
+      $body['Field Settings'] = isset($settings) ? $settings : '';
       $body['Default Value'] = $default;
       $body['Help Text'] = $field['description'];
 

@@ -4,11 +4,16 @@
  * Content Type Functions.
  */
 
+require_once dirname(__FILE__) . '/functions.inc';
+
 /**
  * Content Types Processing function.
  *
- * @param  string $filename file name
- * @return string       file name
+ * @param  string $filename
+ *   The file name for this function.
+ *
+ * @return string
+ *   The file name for this function.
  */
 function _kala_migrate_content_types($filename) {
   // Open The CSV
@@ -30,15 +35,8 @@ function _kala_migrate_content_types($filename) {
   fputcsv($f, $headers);
 
   // Grab pathauto default pattern.
-  // @see pathauto_patterns_form in pathauto.admin.inc
   if (module_exists('pathauto')) {
-    $all_settings = module_invoke_all('pathauto', 'settings');
-    foreach ($all_settings as $settings) {
-      if ($settings->token_type == 'node') {
-        $default_pattern = $settings->patterndefault;
-        break;
-      }
-    }
+    $default_pattern = _kala_migrate_pathauto_default_pattern('node');
   }
 
   // Load up all the features.
@@ -62,11 +60,8 @@ function _kala_migrate_content_types($filename) {
   foreach ($types as $type) {
 
     // Checks for overridden patterns.
-    // @see pathauto_patterns_form in pathauto.admin.inc
     if (isset($default_pattern)) {
-      $variable = 'pathauto_node_' . $type->type . '_pattern';
-      $pattern = !empty(variable_get($variable, '')) ?
-                 variable_get($variable, '') : $default_pattern;
+      $pattern = _kala_migrate_pathauto_overidden_pattern($type->type, $default_pattern);
     }
 
     // Get the default node options to check for default publishing.
