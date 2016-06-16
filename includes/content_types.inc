@@ -7,12 +7,12 @@
 /**
  * Content Types Processing function.
  *
- * @param  string $name file name
+ * @param  string $filename file name
  * @return string       file name
  */
-function _kala_migrate_content_types($name) {
+function _kala_migrate_content_types($filename) {
   // Open The CSV
-  $f = fopen($name, 'w');
+  $f = fopen($filename, 'w');
   // Clear out vars.
   $headers = $body = array();
 
@@ -42,14 +42,16 @@ function _kala_migrate_content_types($name) {
   }
 
   // Load up all the features.
-  $features = features_get_features();
-  foreach ($features as $name => $feat) {
-    // If there are content types in the feature.
-    if (isset($feat->info['features']['node'])) {
-      foreach ($feat->info['features']['node'] as $node) {
-        // Grab the node to check for later in array_search this way.
-        // We can just output the key which is the feature name.
-        $feature[$name] = $node;
+  if (module_exists('features')) {
+    $features = features_get_features();
+    foreach ($features as $featname => $feat) {
+      // If there are content types in the feature.
+      if (isset($feat->info['features']['node'])) {
+        foreach ($feat->info['features']['node'] as $node) {
+          // Grab the node to check for later in array_search this way.
+          // We can just output the key which is the feature name.
+          $feature[$featname] = $node;
+        }
       }
     }
   }
@@ -79,8 +81,10 @@ function _kala_migrate_content_types($name) {
     }
 
     // Check the feature array.
-    $check = array_search($type->type, $feature);
-    $infeature = $check !== FALSE ? $check : 'none';
+    if (isset($feature)) {
+      $check = array_search($type->type, $feature);
+      $infeature = $check !== FALSE ? $check : '';
+    }
 
     // Grab all the fields of the type.
     $body['Type Name'] = $type->name;
@@ -88,7 +92,7 @@ function _kala_migrate_content_types($name) {
     $body['Title Label'] = $type->has_title ? $type->title_label : '';
     $body['Description'] = $type->description;
     $body['Publish'] = $publish ? 'Y' : 'N';
-    $body['Feature'] = $infeature;
+    $body['Feature'] = isset($infeature) ? $infeature : '';
     $body['Field Name'] = '';
     $body['Field Machine Name'] = '';
     $body['Pathauto'] = isset($pattern) ? $pattern : '';
@@ -119,5 +123,5 @@ function _kala_migrate_content_types($name) {
   fclose($f);
 
   // Return File Name
-  return $name;
+  return $filename;
 }

@@ -6,12 +6,12 @@
 /**
  * Image Styles Processing function.
  *
- * @param  string $name file name
+ * @param  string $filename file name
  * @return string       file name
  */
-function _kala_migrate_image_styles($name) {
+function _kala_migrate_image_styles($filename) {
   // Open The CSV
-  $f = fopen($name, 'w');
+  $f = fopen($filename, 'w');
   // Clear out vars.
   $headers = $body = array();
 
@@ -53,5 +53,5 @@ function _kala_migrate_image_styles($name) {
   fclose($f);
 
   // Return File Name
-  return $name;
+  return $filename;
 }
