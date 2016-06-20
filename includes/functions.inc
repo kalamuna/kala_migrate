@@ -62,14 +62,20 @@ function _kala_migrate_pathauto_overidden_pattern($machine_name, $default_patter
 function _kala_migrate_get_field_settings($widget) {
   $settings = '';
   foreach ($widget as $key => $value) {
-    // Fixes file settings and other things like that.
-    if (is_array($value)) {
-      $flatvalue = '{';
-      foreach ($value as $key2 => $value2) {
-        $flatvalue .= '"' . $key2 . ' = ' . $value2 . '", ';
-      }
-      $value = rtrim($flatvalue, -2) . '}';
+    // Convert bool to string.
+    if (is_bool($value)) {
+      $value = $value ? 'TRUE' : 'FALSE';
     }
+
+    // Recursively flattens settings that are arrays.
+    if (is_array($value)) {
+      $flatvalue = _kala_migrate_get_field_settings($value);
+      $value = rtrim($flatvalue, ' ,');
+    }
+
+    // Add brackets for better formatting
+    $value = isset($flatvalue) ? '{' . $value . '}' : $value;
+
     // Throw the settings into a happu string.
     $settings .= '"' . $key . ' = ' . $value . '", ';
   }
