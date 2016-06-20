@@ -81,35 +81,40 @@ function _kala_migrate_content_types($filename) {
       $infeature = $check !== FALSE ? $check : '';
     }
 
-    // Grab all the fields of the type.
-    $body['Type Name'] = $type->name;
-    $body['Type Machine Name'] = $type->type;
-    $body['Title Label'] = $type->has_title ? $type->title_label : '';
-    $body['Description'] = $type->description;
-    $body['Publish'] = $publish ? 'Y' : 'N';
-    $body['Feature'] = isset($infeature) ? $infeature : '';
-    $body['Field Name'] = '';
-    $body['Field Machine Name'] = '';
-    $body['Pathauto'] = isset($pattern) ? $pattern : '';
-
-    // Main rowz for types.
-    fputcsv($f, $body);
-
     // Trill in the fields.
     $fields = field_info_instances('node', $type->type);
-    foreach ($fields as $field) {
-      // Tabbed stuff for fields.
-      $body['Type Name'] = '';
-      $body['Type Machine Name'] = '';
-      $body['Title Label'] = '';
-      $body['Description'] = '';
-      $body['Publish'] = '';
-      $body['Feature'] = '';
-      $body['Field Name'] = $field['label'];
-      $body['Field Machine Name'] = $field['field_name'];
-      $body['Pathauto'] = '';
+    // Grab the first row to make this format happier.
+    reset($fields);
+    $first = key($fields);
+    // Go through the loop now.
+    foreach ($fields as $key => $field) {
+      // Set up first row and then tab the rest.
+      if ($key === $first) {
+        // Add in all the data on the first row.
+        $body['Type Name'] = $type->name;
+        $body['Type Machine Name'] = $type->type;
+        $body['Title Label'] = $type->has_title ? $type->title_label : '';
+        $body['Description'] = $type->description;
+        $body['Publish'] = $publish ? 'Y' : 'N';
+        $body['Feature'] = isset($infeature) ? $infeature : '';
+        $body['Field Name'] = $field['label'];
+        $body['Field Machine Name'] = $field['field_name'];
+        $body['Pathauto'] = isset($pattern) ? $pattern : '';
+      }
+      else {
+        // Just the fields within the content type.
+        $body['Type Name'] = '';
+        $body['Type Machine Name'] = '';
+        $body['Title Label'] = '';
+        $body['Description'] = '';
+        $body['Publish'] = '';
+        $body['Feature'] = '';
+        $body['Field Name'] = $field['label'];
+        $body['Field Machine Name'] = $field['field_name'];
+        $body['Pathauto'] = '';
+      }
 
-      // Seperate rows for fieldz.
+      // Throw this in.
       fputcsv($f, $body);
     }
   }

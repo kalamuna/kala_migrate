@@ -46,40 +46,59 @@ function _kala_migrate_vocab($filename) {
       $pattern = _kala_migrate_pathauto_overidden_pattern($vocab->machine_name, $default_pattern);
     }
 
-    $body['Vocab Name'] = $vocab->name;
-    $body['Vocab Machine Name'] = $vocab->machine_name;
-    $body['Description'] = $vocab->description;
-    $body['Pathauto'] = isset($pattern) ? $pattern : '';
-    $body['Vocab Field Name'] = '';
-    $body['Vocab Field Machine Name'] = '';
-    $body['Vocab Field Help Text'] = '';
-    $body['Vocab Field Settings'] = '';
-
-    // throw it in the file meow.
-    fputcsv($f, $body);
-
+    // Grab the field names in thy vocab.
     $fields = field_info_instances('taxonomy_term', $vocab->machine_name);
+    // Grab the first row to make this format happier.
+    reset($fields);
+    $first = key($fields);
     if (isset($fields) && count($fields) > 0) {
-      foreach ($fields as $field) {
-
+      foreach ($fields as $key => $field) {
         // Grab the settings if they exist.
         if (isset($field['widget']['settings'])) {
           $settings = _kala_migrate_get_field_settings($field['widget']['settings']);
         }
 
-        // Add the fields to the array to be added to the sheet.
-        $body['Vocab Name'] = '';
-        $body['Vocab Machine Name'] = '';
-        $body['Description'] = '';
-        $body['Pathauto'] = '';
-        $body['Vocab Field Name'] = $field['label'];
-        $body['Vocab Field Machine Name'] = $field['field_name'];
-        $body['Vocab Field Help Text'] = $field['description'];
-        $body['Vocab Field Settings'] = isset($settings) ? $settings : '';
+        // Set up first row and then tab the rest.
+        if ($key === $first) {
+          // Add in all the data on the first row.
+          $body['Vocab Name'] = $vocab->name;
+          $body['Vocab Machine Name'] = $vocab->machine_name;
+          $body['Description'] = $vocab->description;
+          $body['Pathauto'] = isset($pattern) ? $pattern : '';
+          $body['Vocab Field Name'] = $field['label'];
+          $body['Vocab Field Machine Name'] = $field['field_name'];
+          $body['Vocab Field Help Text'] = $field['description'];
+          $body['Vocab Field Settings'] = isset($settings) ? $settings : '';
+        }
+        else {
+          // Just the fields within the vocab type.
+          $body['Vocab Name'] = '';
+          $body['Vocab Machine Name'] = '';
+          $body['Description'] = '';
+          $body['Pathauto'] = '';
+          $body['Vocab Field Name'] = $field['label'];
+          $body['Vocab Field Machine Name'] = $field['field_name'];
+          $body['Vocab Field Help Text'] = $field['description'];
+          $body['Vocab Field Settings'] = isset($settings) ? $settings : '';
+        }
 
-        // tab in the fileds part.
+        // Throw this in.
         fputcsv($f, $body);
       }
+    }
+    else {
+      // No fields, just put this in the CSV.
+      $body['Vocab Name'] = $vocab->name;
+      $body['Vocab Machine Name'] = $vocab->machine_name;
+      $body['Description'] = $vocab->description;
+      $body['Pathauto'] = isset($pattern) ? $pattern : '';
+      $body['Vocab Field Name'] = '';
+      $body['Vocab Field Machine Name'] = '';
+      $body['Vocab Field Help Text'] = '';
+      $body['Vocab Field Settings'] = '';
+
+      // Throw this in.
+      fputcsv($f, $body);
     }
   }
 

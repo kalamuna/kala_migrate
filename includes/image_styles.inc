@@ -28,24 +28,30 @@ function _kala_migrate_image_styles($filename) {
   $styles = image_styles();
 
   foreach ($styles as $style) {
-    $body['Style Name'] = $style['label'];
-    $body['Style Machine Name'] = $style['name'];
-    $body['Effect'] = '';
-    $body['Settings'] = '';
-
-    // throw it in the file meow.
-    fputcsv($f, $body);
-
-    // Blank Columns To tab this sort of.
-    $body['Style Name'] = '';
-    $body['Style Machine Name'] = '';
-    foreach ($style['effects'] as $effect) {
-      $body['Effect'] = $effect['label'];
+    // Grab the first row to make this format happier.
+    reset($style['effects']);
+    $first = key($style['effects']);
+    foreach ($style['effects'] as $key => $effect) {
+      // Grab the settings / effects.
       $settings = '';
-      foreach ($effect['data'] as $key => $data) {
-        $settings .= '"' . $key . ' = ' . $data . '", ';
+      foreach ($effect['data'] as $setting => $data) {
+        $settings .= '"' . $setting . ' = ' . $data . '", ';
       }
-      $body['Settings'] = $settings;
+
+      // Set up first row and then tab the rest.
+      if ($key === $first) {
+        // Go thrugh and add all the styles.
+        $body['Style Name'] = $style['label'];
+        $body['Style Machine Name'] = $style['name'];
+        $body['Effect'] = $effect['label'];
+        $body['Settings'] = $settings;
+      }
+      else {
+        $body['Style Name'] = '';
+        $body['Style Machine Name'] = '';
+        $body['Effect'] = $effect['label'];
+        $body['Settings'] = $settings;
+      }
 
       // throw it in the file meow.
       fputcsv($f, $body);
