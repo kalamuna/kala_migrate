@@ -45,39 +45,64 @@ function kala_migrate_form_alter(&$form, &$form_state, $form_id) {
  */
 function _kala_migrate_settings_form() {
 
-  $form['content_types'] = array(
+  $form['ct'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Content Based Items'),
+  );
+
+  $form['ct']['content_types'] = array(
     '#type' => 'checkbox',
     '#title' => t('Get all Content Types and the their data (includes some field data)'),
     '#default_value' => 1,
   );
 
-  $form['fields'] = array(
+  $form['ct']['fields'] = array(
     '#type' => 'checkbox',
     '#title' => t('Get full Fields data (more detailed)'),
     '#default_value' => 1,
   );
 
-  $form['image_styles'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Get all Image Styles and Settings?'),
-    '#default_value' => 1,
+  $form['tx'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Taxonomy Based Items'),
   );
 
-  $form['menus'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Get all the Menu Settings?'),
-    '#default_value' => 1,
-  );
-
-  $form['vocab'] = array(
+  $form['tx']['vocab'] = array(
     '#type' => 'checkbox',
     '#title' => t('Get all the Taxonomy Vocabulary Settings?'),
     '#default_value' => 1,
   );
 
-  $form['views'] = array(
+  $form['is'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Image Based Items'),
+  );
+
+  $form['is']['image_styles'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Get all Image Styles and Settings?'),
+    '#default_value' => 1,
+  );
+
+  $form['vs'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Views Based Items'),
+  );
+
+  $form['vs']['views'] = array(
     '#type' => 'checkbox',
     '#title' => t('Get all the Views Settings?'),
+    '#default_value' => 1,
+  );
+
+  $form['am'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Admin Based Items'),
+  );
+
+  $form['am']['menus'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Get all the Menu Settings?'),
     '#default_value' => 1,
   );
 
@@ -91,35 +116,36 @@ function _kala_migrate_settings_form() {
  */
 function _kala_migrate_settings_form_submit($form, &$form_state) {
   $files = array();
+  $values = $form_state['values'];
 
   // The Content Type & Fields Settings.
-  if ($form_state['values']['content_types']) {
+  if ($values['content_types']) {
     $files[] = _kala_migrate_content_types('content-types.csv');
   }
 
   // The Full Fields Settings.
-  if ($form_state['values']['fields']) {
+  if ($values['fields']) {
     $files[] = _kala_migrate_fields('fields.csv');
   }
 
-  // The Image Styles & Settings.
-  if ($form_state['values']['image_styles']) {
-    $files[] = _kala_migrate_image_styles('image-styles.csv');
-  }
-
-  // The Menus Settings.
-  if ($form_state['values']['menus']) {
-    $files[] = _kala_migrate_menus('menus.csv');
-  }
-
   // The Taxonomy Vocabulary Settings.
-  if ($form_state['values']['vocab']) {
+  if ($values['vocab']) {
     $files[] = _kala_migrate_vocab('vocab.csv');
   }
 
+  // The Image Styles & Settings.
+  if ($values['image_styles']) {
+    $files[] = _kala_migrate_image_styles('image-styles.csv');
+  }
+
   // The Views Settings.
-  if ($form_state['values']['views']) {
+  if ($values['views']) {
     $files[] = _kala_migrate_views('views.csv');
+  }
+
+  // The Menus Settings.
+  if ($values['menus']) {
+    $files[] = _kala_migrate_menus('menus.csv');
   }
 
   // If there are files, lets do this!
