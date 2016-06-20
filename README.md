@@ -41,7 +41,7 @@ function _kala_migrate_FUNCTION_NAME($filename) {
 
 4. in the _kala_migrate_settings_form() add a checkbox like:
 ```
-$form['FIELD_NAME'] = array(
+$form['FIELDSET']['FIELD_NAME'] = array(
   '#type' => 'checkbox',
   '#title' => t('BLAH BLAH BLAH'),
   '#default_value' => 1,
@@ -50,9 +50,32 @@ $form['FIELD_NAME'] = array(
 
 5. In the _kala_migrate_settings_form_submit add a check and link to function, with the file name:
 ```
-if ($form_state['values']['FIELD_NAME']) {
+if ($values['FIELD_NAME']) {
   $files[] = _kala_migrate_FUNCTION_NAME('FIELD_NAME.csv');
 }
 ```
 
 FIN!
+
+## Functions
+
+There is a function.inc file that contains some handy tools to display data.
+
+To Use:
+
+1. In your .inc file put this at the top:
+```
+require_once dirname(__FILE__) . '/functions.inc';
+```
+
+### The Functions
+
+1. _kala_migrate_pathauto_default_pattern($type)
+Pass In the machine name of the type and it returns the pathauto pattern for that type.
+
+2. _kala_migrate_pathauto_overidden_pattern($machine_name, $default_pattern)
+Pass in the machine name + the default pattern from 1 and it will return the pathauto pattern if it is overridden.
+
+3. _kala_migrate_get_field_settings($widget)
+The most used function in this file.  This is for flattening an array of widget / entity settings into a string.  Pass in whatever settings array you are trying to get all the settings for.
+
