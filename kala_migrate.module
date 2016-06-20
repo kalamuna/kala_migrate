@@ -10,6 +10,7 @@ require_once dirname(__FILE__) . '/includes/image_styles.inc';
 require_once dirname(__FILE__) . '/includes/menus.inc';
 require_once dirname(__FILE__) . '/includes/views.inc';
 require_once dirname(__FILE__) . '/includes/vocab.inc';
+require_once dirname(__FILE__) . '/includes/user_roles.inc';
 require_once dirname(__FILE__) . '/includes/zip.inc';
 
 /**
@@ -106,6 +107,12 @@ function _kala_migrate_settings_form() {
     '#default_value' => 1,
   );
 
+  $form['am']['roles'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Get all the User Roles?'),
+    '#default_value' => 1,
+  );
+
   $form['#submit'][] = '_kala_migrate_settings_form_submit';
 
   return system_settings_form($form);
@@ -146,6 +153,11 @@ function _kala_migrate_settings_form_submit($form, &$form_state) {
   // The Menus Settings.
   if ($values['menus']) {
     $files[] = _kala_migrate_menus('menus.csv');
+  }
+
+  // The Menus Settings.
+  if ($values['roles']) {
+    $files[] = _kala_migrate_user_roles('user-roles.csv');
   }
 
   // If there are files, lets do this!
