@@ -8,6 +8,7 @@ require_once dirname(__FILE__) . '/includes/content_types.inc';
 require_once dirname(__FILE__) . '/includes/fields.inc';
 require_once dirname(__FILE__) . '/includes/image_styles.inc';
 require_once dirname(__FILE__) . '/includes/menus.inc';
+require_once dirname(__FILE__) . '/includes/redirect.inc';
 require_once dirname(__FILE__) . '/includes/views.inc';
 require_once dirname(__FILE__) . '/includes/vocab.inc';
 require_once dirname(__FILE__) . '/includes/user_roles.inc';
@@ -113,6 +114,14 @@ function _kala_migrate_settings_form() {
     '#default_value' => 1,
   );
 
+  if (module_exists('redirect')) {
+    $form['am']['redirect'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Get all the Redirects?'),
+      '#default_value' => 1,
+    );
+  }
+
   $form['#submit'][] = '_kala_migrate_settings_form_submit';
 
   return system_settings_form($form);
@@ -158,6 +167,13 @@ function _kala_migrate_settings_form_submit($form, &$form_state) {
   // The Menus Settings.
   if ($values['roles']) {
     $files[] = _kala_migrate_user_roles('user-roles.csv');
+  }
+
+  // The Redirect Settings.
+  if (module_exists('redirect')) {
+    if ($values['redirect']) {
+      $files[] = _kala_migrate_redirects('redirects.csv');
+    }
   }
 
   // If there are files, lets do this!
