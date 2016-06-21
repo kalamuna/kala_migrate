@@ -3,6 +3,8 @@
  * Page Manager Pages Functions.
  */
 
+require_once dirname(__FILE__) . '/functions.inc';
+
 /**
  * Page Manager Pages Processing function.
  *
@@ -21,8 +23,13 @@ function _kala_migrate_pm_pages($filename) {
   $headers[0] = 'PM Name';
   $headers[1] = 'PM Machine Name';
   $headers[2] = 'Module';
-  $headers[3] = 'Description';
-  $headers[3] = 'Path';
+  $headers[3] = 'Enabled?';
+  $headers[4] = 'Description';
+  $headers[5] = 'Path';
+  $headers[6] = 'Access';
+  $headers[7] = 'Menu';
+  $headers[8] = 'Variant Name';
+  $headers[9] = 'Variant Machine Name';
 
   // print headers to CSV
   fputcsv($f, $headers);
@@ -71,29 +78,164 @@ function _kala_migrate_pm_pages($filename) {
 
       // Lets go through and load this up.
       foreach ($pages as $page) {
-
+        // Fix up the module namefor styling wins.
         $module = str_replace('_', ' ', $page->table);
         if (stripos($module, '_pages') !== FALSE) {
           $module = strstr($module, '_pages');
         }
 
-        $body['PM Name'] = $page->admin_title;
-        $body['PM Machine Name'] = $page->name;
-        $body['Module'] = ucwords($module);
-        $body['Description'] = isset($page->admin_description) ? $page->admin_description : '';
-        $body['Path'] = isset($page->path) ? $page->path : '';
+        // See if this is enabled or not.
+        if (isset($page->disabled)) {
+          $enabled = $page->disabled ? 'No' : 'Yes';
+        }
+        else {
+          $enabled = 'Yes';
+        }
 
-        fputcsv($f, $body);
+        // Access Settings.
+        $access = '';
+        if (isset($page->access)) {
+          $access = _kala_migrate_get_field_settings($page->access);
+        }
 
-        // if (isset($page->default_handlers)) {
-        //   foreach ($page->default_handlers as $key => $variant) { }
-        // }
-        // dpm($page);
+        // Menu Settings.
+        $menu = '';
+        if (isset($page->menu)) {
+          $menu = _kala_migrate_get_field_settings($page->menu);
+        }
 
+        // Load the handlers
+        $handlers = isset($page->default_handlers) ? $page->default_handlers :
+                    page_manager_load_sorted_handlers($task, $page->name);
+
+        // If there are variants, lets do this.
+        if (isset($handlers)) {
+          // Grab the first key for tabbing.
+          reset($handlers);
+          $first = key($handlers);
+
+          // Load each variant up
+          foreach ($handlers as $key => $variant) {
+            // Set up first row and then tab the rest.
+            if ($key === $first) {
+              $body['PM Name'] = isset($page->admin_title) ? $page->admin_title : $page->label;
+              $body['PM Machine Name'] = $page->name;
+              $body['Module'] = ucwords($module);
+              $body['Enabled?'] = $enabled;
+              $body['Description'] = isset($page->admin_description) ? $page->admin_description : '';
+              $body['Path'] = isset($page->path) ? $page->path : '';
+              $body['Access'] = $access;
+              $body['Menu'] = $menu;
+              $body['Variant Name'] = $variant->conf['title'];
+              $body['Variant Machine Name'] = $key;
+            }
+            else {
+              $body['PM Name'] = '';
+              $body['PM Machine Name'] = '';
+              $body['Module'] = '';
+              $body['Enabled?'] = '';
+              $body['Description'] = '';
+              $body['Path'] = '';
+              $body['Access'] = '';
+              $body['Menu'] = '';
+              $body['Variant Name'] = $variant->conf['title'];
+              $body['Variant Machine Name'] = $key;
+            }
+
+            // Throw it all in now.
+            fputcsv($f, $body);
+          }
+        }
+        else {
+          // No Variants.
+          $body['PM Name'] = isset($page->admin_title) ? $page->admin_title : $page->label;
+          $body['PM Machine Name'] = $page->name;
+          $body['Module'] = ucwords($module);
+          $body['Enabled?'] = $enabled;
+          $body['Description'] = isset($page->admin_description) ? $page->admin_description : '';
+          $body['Path'] = isset($page->path) ? $page->path : '';
+          $body['Access'] = $access;
+          $body['Menu'] = $menu;
+          $body['Variant Name'] = '';
+          $body['Variant Machine Name'] = '';
+
+          // Throw it all in now.
+          fputcsv($f, $body);
+        }
       }
     }
     else {
-      // LOAD THE NON PAGE MAAER TYPE LIKE NODE VIEW JUST IN THE CSV.
+      // These are non page manager types that are task based.
+      ctools_include('context');
+      ctools_include('context-task-handler');
+      $handlers = page_manager_load_sorted_handlers($task, '', TRUE);
+
+      // See if this is enabled or not.
+      if (isset($task->disabled)) {
+        $enabled = $task->disabled ? 'No' : 'Yes';
+      }
+      else {
+        $enabled = 'Yes';
+      }
+
+      // Get the access call back hook.
+      $access = isset($task['access callback']) ?
+                'Callback: ' . $task['access callback'] : '';
+
+
+      if (isset($handlers)) {
+        // Grab the first key for tabbing.
+        reset($handlers);
+        $first = key($handlers);
+
+        // Load each variant up
+        foreach ($handlers as $key => $variant) {
+          // Set up first row and then tab the rest.
+          if ($key === $first) {
+            $body['PM Name'] = $task['title'];
+            $body['PM Machine Name'] = $task['name'];
+            $body['Module'] = ucwords(str_replace('_', ' ', $task['module']));
+            $body['Enabled?'] = $enabled;
+            $body['Description'] = isset($task['admin_description']) ? $task['admin_description'] : '';
+            $body['Path'] = isset($task['admin path']) ? $task['admin path'] : '';
+            $body['Access'] = $access;
+            $body['Menu'] = '';
+            $body['Variant Name'] = $variant->conf['title'];
+            $body['Variant Machine Name'] = $key;
+          }
+          else {
+            $body['PM Name'] = '';
+            $body['PM Machine Name'] = '';
+            $body['Module'] = '';
+            $body['Enabled?'] = '';
+            $body['Description'] = '';
+            $body['Path'] = '';
+            $body['Access'] = '';
+            $body['Menu'] = '';
+            $body['Variant Name'] = $variant->conf['title'];
+            $body['Variant Machine Name'] = $key;
+          }
+
+          // Throw it all in now.
+          fputcsv($f, $body);
+        }
+      }
+      else {
+        // No Variants.
+        $body['PM Name'] = $task['title'];
+        $body['PM Machine Name'] = $task['name'];
+        $body['Module'] = ucwords(str_replace('_', ' ', $task['module']));
+        $body['Enabled?'] = $enabled;
+        $body['Description'] = isset($task['admin_description']) ? $task['admin_description'] : '';
+        $body['Path'] = isset($task['admin path']) ? $task['admin path'] : '';
+        $body['Access'] = $access;
+        $body['Menu'] = '';
+        $body['Variant Name'] = '';
+        $body['Variant Machine Name'] = '';
+
+        // Throw it all in now.
+        fputcsv($f, $body);
+      }
     }
   }
 

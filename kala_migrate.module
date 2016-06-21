@@ -55,13 +55,13 @@ function _kala_migrate_settings_form() {
 
   $form['ct']['content_types'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Get All Content Types and Their Data (includes some field data)'),
+    '#title' => t('Get all Content Types and their data (includes some field data)'),
     '#default_value' => 1,
   );
 
   $form['ct']['fields'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Get Full Fields Data (more detailed)'),
+    '#title' => t('Get full Fields data (more detailed)'),
     '#default_value' => 1,
   );
 
@@ -72,7 +72,7 @@ function _kala_migrate_settings_form() {
 
   $form['tx']['vocab'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Get All The Taxonomy Vocabulary Settings?'),
+    '#title' => t('Get all of the Taxonomy Vocabulary Settings?'),
     '#default_value' => 1,
   );
 
@@ -84,7 +84,7 @@ function _kala_migrate_settings_form() {
   if (module_exists('page_manager')) {
     $form['ps']['pm_pages'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Get All the Page Manager Pages and Their Settings?'),
+      '#title' => t('Get all of the Page Manager Pages and their Settings?'),
       '#default_value' => 1,
     );
   }
@@ -96,7 +96,7 @@ function _kala_migrate_settings_form() {
 
   $form['is']['image_styles'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Get All Image Styles and Settings?'),
+    '#title' => t('Get all Image Styles and Settings?'),
     '#default_value' => 1,
   );
 
@@ -107,7 +107,7 @@ function _kala_migrate_settings_form() {
 
   $form['vs']['views'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Get All the Views and Their Settings?'),
+    '#title' => t('Get all Views and their Settings?'),
     '#default_value' => 1,
   );
 
@@ -118,20 +118,20 @@ function _kala_migrate_settings_form() {
 
   $form['am']['menus'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Get All the Menu Settings?'),
+    '#title' => t('Get all of the Menu Settings?'),
     '#default_value' => 1,
   );
 
   $form['am']['roles'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Get All of the User Roles?'),
+    '#title' => t('Get all of the User Roles?'),
     '#default_value' => 1,
   );
 
   if (module_exists('redirect')) {
     $form['am']['redirect'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Get All of the Redirects?'),
+      '#title' => t('Get all of the Redirects?'),
       '#default_value' => 1,
     );
   }
