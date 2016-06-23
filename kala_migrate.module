@@ -5,6 +5,7 @@
 
 // Load function files for processing.
 require_once dirname(__FILE__) . '/includes/content_types.inc';
+require_once dirname(__FILE__) . '/includes/features.inc';
 require_once dirname(__FILE__) . '/includes/fields.inc';
 require_once dirname(__FILE__) . '/includes/image_styles.inc';
 require_once dirname(__FILE__) . '/includes/menus.inc';
@@ -116,6 +117,14 @@ function _kala_migrate_settings_form() {
     '#title' => t('Admin Based Items'),
   );
 
+  if (module_exists('features')) {
+    $form['am']['feat'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Get all of the Features and their Settings?'),
+      '#default_value' => 1,
+    );
+  }
+
   $form['am']['menus'] = array(
     '#type' => 'checkbox',
     '#title' => t('Get all of the Menu Settings?'),
@@ -176,6 +185,11 @@ function _kala_migrate_settings_form_submit($form, &$form_state) {
   // The Views Settings.
   if ($values['views']) {
     $files[] = _kala_migrate_views('views.csv');
+  }
+  if (module_exists('features')) {
+    if ($values['feat']) {
+      $files[] = _kala_migrate_features('features.csv');
+    }
   }
 
   // The Menus Settings.
