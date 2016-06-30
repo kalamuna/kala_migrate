@@ -4,6 +4,7 @@ package = Kalamuna
 core = 7.x
 version = 7.x-0.1
 dependencies[] = ctools
+dependencies[] = entity
 dependencies[] = views
 
 configure = admin/config/development/kala_migrate

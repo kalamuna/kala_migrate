@@ -7,6 +7,7 @@
 require_once dirname(__FILE__) . '/includes/content_types.inc';
 require_once dirname(__FILE__) . '/includes/features.inc';
 require_once dirname(__FILE__) . '/includes/fields.inc';
+require_once dirname(__FILE__) . '/includes/fpp.inc';
 require_once dirname(__FILE__) . '/includes/image_styles.inc';
 require_once dirname(__FILE__) . '/includes/menus.inc';
 require_once dirname(__FILE__) . '/includes/pm_pages.inc';
@@ -86,6 +87,14 @@ function _kala_migrate_settings_form() {
     $form['ps']['pm_pages'] = array(
       '#type' => 'checkbox',
       '#title' => t('Get all of the Page Manager Pages and their Settings?'),
+      '#default_value' => 1,
+    );
+  }
+
+  if (module_exists('fieldable_panels_panes')) {
+    $form['ps']['fpp'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Get all of Fieldable Panels Panes?'),
       '#default_value' => 1,
     );
   }
@@ -173,8 +182,17 @@ function _kala_migrate_settings_form_submit($form, &$form_state) {
   }
 
   // The Page Manager Pages.
-  if ($values['pm_pages']) {
-    $files[] = _kala_migrate_pm_pages('page-manager-pages.csv');
+  if (module_exists('page_manager')) {
+    if ($values['pm_pages']) {
+      $files[] = _kala_migrate_pm_pages('page-manager-pages.csv');
+    }
+  }
+
+  // The FPP Items.
+  if (module_exists('fieldable_panels_panes')) {
+    if ($values['fpp']) {
+      $files[] = _kala_migrate_fpp('fieldable-panels-panes.csv');
+    }
   }
 
   // The Image Styles & Settings.
@@ -186,6 +204,7 @@ function _kala_migrate_settings_form_submit($form, &$form_state) {
   if ($values['views']) {
     $files[] = _kala_migrate_views('views.csv');
   }
+
   if (module_exists('features')) {
     if ($values['feat']) {
       $files[] = _kala_migrate_features('features.csv');
