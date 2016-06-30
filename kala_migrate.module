@@ -10,6 +10,7 @@ require_once dirname(__FILE__) . '/includes/fields.inc';
 require_once dirname(__FILE__) . '/includes/fpp.inc';
 require_once dirname(__FILE__) . '/includes/image_styles.inc';
 require_once dirname(__FILE__) . '/includes/menus.inc';
+require_once dirname(__FILE__) . '/includes/mini_panels.inc';
 require_once dirname(__FILE__) . '/includes/pm_pages.inc';
 require_once dirname(__FILE__) . '/includes/redirect.inc';
 require_once dirname(__FILE__) . '/includes/views.inc';
@@ -95,6 +96,14 @@ function _kala_migrate_settings_form() {
     $form['ps']['fpp'] = array(
       '#type' => 'checkbox',
       '#title' => t('Get all of Fieldable Panels Panes?'),
+      '#default_value' => 1,
+    );
+  }
+
+  if (module_exists('panels_mini')) {
+    $form['ps']['mini'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Get all of the Mini Panels and their Settings?'),
       '#default_value' => 1,
     );
   }
@@ -192,6 +201,12 @@ function _kala_migrate_settings_form_submit($form, &$form_state) {
   if (module_exists('fieldable_panels_panes')) {
     if ($values['fpp']) {
       $files[] = _kala_migrate_fpp('fieldable-panels-panes.csv');
+    }
+  }
+
+  if (module_exists('panels_mini')) {
+    if ($values['mini']) {
+      $files[] = _kala_migrate_mini_panels('mini-panels.csv');
     }
   }
 
