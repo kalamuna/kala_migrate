@@ -63,6 +63,14 @@ function kala_migrate_settings_form() {
     );
   }
 
+  if (module_exists('panelizer')) {
+    $form['ps']['pzr'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Get a list of Panelizer Entities.'),
+      '#default_value' => 1,
+    );
+  }
+
   if (module_exists('fieldable_panels_panes')) {
     $form['ps']['fpp'] = array(
       '#type' => 'checkbox',
@@ -165,6 +173,12 @@ function kala_migrate_settings_form_submit($form, &$form_state) {
   if (module_exists('page_manager')) {
     if ($values['pm_pages']) {
       $files[] = _kala_migrate_pm_pages('page-manager-pages.csv');
+    }
+  }
+
+  if (module_exists('panelizer')) {
+    if ($values['pzr']) {
+      $files[] = _kala_migrate_panelizer('panelizer.csv');
     }
   }
 
