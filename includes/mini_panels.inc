@@ -43,7 +43,6 @@ function _kala_migrate_mini_panels($filename) {
     // Display Settings.
     $layout = $settings = '';
     if (isset($mini->display)) {
-      dpm($mini);
       $layout = $mini->display->layout;
       if (isset($mini->display->layout_settings)) {
         $settings = _kala_migrate_get_field_settings($mini->display->layout_settings);
