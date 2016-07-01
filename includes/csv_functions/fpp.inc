@@ -3,8 +3,6 @@
  * Fieldable Panels Panes Functions.
  */
 
-require_once dirname(__FILE__) . '/functions.inc';
-
 /**
  * Fieldable Panels Panes Processing function.
  *

@@ -3,8 +3,6 @@
  * Mini Panels Functions.
  */
 
-require_once dirname(__FILE__) . '/functions.inc';
-
 /**
  * Mini Panels Processing function.
  *

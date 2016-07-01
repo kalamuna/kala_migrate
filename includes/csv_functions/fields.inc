@@ -4,8 +4,6 @@
  * Fields Functions.
  */
 
-require_once dirname(__FILE__) . '/functions.inc';
-
 /**
  * Fields Processing function.
  *

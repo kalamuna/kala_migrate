@@ -3,20 +3,17 @@
  * Module file for Kala Migrate.
  */
 
-// Load function files for processing.
-require_once dirname(__FILE__) . '/includes/content_types.inc';
-require_once dirname(__FILE__) . '/includes/features.inc';
-require_once dirname(__FILE__) . '/includes/fields.inc';
-require_once dirname(__FILE__) . '/includes/fpp.inc';
-require_once dirname(__FILE__) . '/includes/image_styles.inc';
-require_once dirname(__FILE__) . '/includes/menus.inc';
-require_once dirname(__FILE__) . '/includes/mini_panels.inc';
-require_once dirname(__FILE__) . '/includes/pm_pages.inc';
-require_once dirname(__FILE__) . '/includes/redirect.inc';
-require_once dirname(__FILE__) . '/includes/views.inc';
-require_once dirname(__FILE__) . '/includes/vocab.inc';
-require_once dirname(__FILE__) . '/includes/user_roles.inc';
-require_once dirname(__FILE__) . '/includes/zip.inc';
+/**
+ * Include all function files.
+ */
+$path = dirname(__FILE__) . '/includes/';
+$dir = new RecursiveDirectoryIterator($path);
+$iterator = new RecursiveIteratorIterator($dir);
+foreach ($iterator as $file) {
+  if (stripos($file->getFilename(), '.inc') !== FALSE) {
+    require_once $file->getPathname();
+  }
+}
 
 /**
  * Implements hook_menu().
@@ -250,4 +247,8 @@ function _kala_migrate_settings_form_submit($form, &$form_state) {
 
   // Get to the chopper!
   exit;
+}
+
+function kala_migrate_init() {
+
 }

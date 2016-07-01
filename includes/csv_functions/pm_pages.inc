@@ -3,8 +3,6 @@
  * Page Manager Pages Functions.
  */
 
-require_once dirname(__FILE__) . '/functions.inc';
-
 /**
  * Page Manager Pages Processing function.
  *

@@ -3,8 +3,6 @@
  * Vocab Functions.
  */
 
-require_once dirname(__FILE__) . '/functions.inc';
-
 /**
  * Vocab Processing function.
  *

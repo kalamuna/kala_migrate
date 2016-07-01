@@ -8,13 +8,9 @@ Outputs a ZIP file that contains CSV's in utf-8 chatcter set.  Make sure you cha
 
 To add in your own set of checks for this module:
 
-1. Create a file in the /includes folder
-2. Add this to the top of kala_migrate.module:
-```
-require_once dirname(__FILE__) . '/includes/YOURFILE.inc';
-```
+1. Create a file in the /includes/csv_functions folder
+2. In the /includes/csv_functions/YOURFILE.inc file add this:
 
-3. In the /includes/YOURFILE.inc file add this:
 ```
 function _kala_migrate_FUNCTION_NAME($filename) {
   // Open The CSV
@@ -39,7 +35,7 @@ function _kala_migrate_FUNCTION_NAME($filename) {
 }
 ```
 
-4. in the _kala_migrate_settings_form() add a checkbox like:
+3. in the _kala_migrate_settings_form() add a checkbox like:
 ```
 $form['FIELDSET']['FIELD_NAME'] = array(
   '#type' => 'checkbox',
@@ -48,7 +44,7 @@ $form['FIELDSET']['FIELD_NAME'] = array(
 );
 ```
 
-5. In the _kala_migrate_settings_form_submit add a check and link to function, with the file name:
+4. In the _kala_migrate_settings_form_submit add a check and link to function, with the file name:
 ```
 if ($values['FIELD_NAME']) {
   $files[] = _kala_migrate_FUNCTION_NAME('FIELD_NAME.csv');
@@ -60,13 +56,6 @@ FIN!
 ## Functions
 
 There is a function.inc file that contains some handy tools to display data.
-
-To Use:
-
-1. In your .inc file put this at the top:
-```
-require_once dirname(__FILE__) . '/functions.inc';
-```
 
 ### The Functions
 

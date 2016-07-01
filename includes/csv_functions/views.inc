@@ -3,8 +3,6 @@
  * Views Functions.
  */
 
-require_once dirname(__FILE__) . '/functions.inc';
-
 /**
  * Views Processing function.
  *

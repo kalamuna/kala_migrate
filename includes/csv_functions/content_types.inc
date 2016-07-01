@@ -4,8 +4,6 @@
  * Content Type Functions.
  */
 
-require_once dirname(__FILE__) . '/functions.inc';
-
 /**
  * Content Types Processing function.
  *
