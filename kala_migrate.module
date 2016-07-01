@@ -42,15 +42,23 @@ function kala_migrate_menu() {
   $items['admin/config/development/kala_migrate/info'] = array(
     'title' => t('Info'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => -12,
+    'weight' => -3,
   );
 
   $items['admin/config/development/kala_migrate/export'] = array(
     'title' => t('CSV Exports'),
     'type' => MENU_LOCAL_TASK,
-    'weight' => -11,
+    'weight' => -2,
     'page callback' => 'drupal_get_form',
     'page arguments' => array('kala_migrate_settings_form'),
+    'access arguments' => array('administer kala migrate'),
+  );
+
+  $items['admin/config/development/kala_migrate/module'] = array(
+    'title' => t('Module Status'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => -1,
+    'page callback' => 'kala_migrate_module_page',
     'access arguments' => array('administer kala migrate'),
   );
 
@@ -65,8 +73,4 @@ function kala_migrate_form_alter(&$form, &$form_state, $form_id) {
   if ($form_id == 'kala_migrate_settings_form') {
     $form['actions']['submit']['#value'] = 'Download ZIP';
   }
-}
-
-function kala_migrate_init() {
-
 }

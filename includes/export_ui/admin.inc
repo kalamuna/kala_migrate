@@ -11,14 +11,14 @@ function kala_migrate_info() {
   $html  = '<h2>' . t('Kala Migrate Options') . '</h2>';
   $html .= '<ol>';
   $html .= '<li>' . t('<b>EXPORT CSV:</b> Export all structural and architectural items for the site into multiple csv\'s contained in ZIP file.') . '</li>';
-  $html .= '<li>' . t('<b>MODULES LIST:</b> Module list for exporting to D8, COMING SOON.') . '</li>';
+  $html .= '<li>' . t('<b>MODULES STATUS:</b> Module list for exporting to D8.') . '</li>';
   $html .= '</ol>';
 
   return array('#markup' => $html);
 }
 
 /**
- * hook_menu Page Callback.
+ * CSV Exports Form / Page Callback.
  */
 function kala_migrate_settings_form() {
 
@@ -148,7 +148,7 @@ function kala_migrate_settings_form() {
 }
 
 /**
- * Submit handler for form.
+ * Submit handler for csv exports form.
  */
 function kala_migrate_settings_form_submit($form, &$form_state) {
   $files = array();
@@ -235,4 +235,103 @@ function kala_migrate_settings_form_submit($form, &$form_state) {
 
   // Get to the chopper!
   exit;
+}
+
+/**
+ * Module Export Page Callback.
+ */
+function kala_migrate_module_page() {
+
+  $modules = db_query('SELECT name,info from {system} WHERE type = :type AND status = :status ORDER BY name ASC', array(':type' => 'module', ':status' => 1))->fetchAll();
+
+  // Table Markup.
+  $table  = '<table border="1">';
+  $table .= '<thead>';
+  $table .= '<tr>';
+  $table .= '<th>Module Name</th>';
+  $table .= '<th>Module Link</th>';
+  $table .= '<th>D8 Status</th>';
+  $table .= '<th>D8 Issue Progress Link</th>';
+  $table .= '</tr>';
+  $table .= '</thead>';
+  $table .= '<tbody>';
+  foreach ($modules as $module) {
+    $table .= '<tr>';
+    if (isset($module->info)) {
+      $info = unserialize($module->info);
+      if (isset($info['project'])) {
+        // Name.
+        $table .= '<td>' . $info['name'] . '</td>';
+        // Project Link,
+        $url = 'http://www.drupal.org/project/' . $info['project'];
+        $url = l($url, check_url($url),
+          array('attributes' => array('target'=>'_blank'))
+        );
+        $table .= '<td>' . $url . '</td>';
+        // Drupal 8 status.
+        $status = isset($info['drupal8status']) ? $info['drupal8status'] : '';
+        $table .= '<td>' . $status . '</td>';
+        // Drupal 8 Status Link.
+        $link = isset($info['drupal8issue']) ?
+                l($info['drupal8issue'], check_url($info['drupal8issue']),
+                  array('attributes' => array('target'=>'_blank'))) : '';
+        $table .= '<td>' . $link . '</td>';
+      }
+    }
+    $table .= '</tr>';
+  }
+
+  $table .= '</tbody>';
+  $table .= '</table>';
+
+  // Grab the refresh form button.
+  $form = drupal_get_form('kala_migrate_module_form');
+
+  $page = array(
+    '#prefix' => '<center>',
+    'form' => $form,
+    'table' => array(
+      '#markup' => $table,
+    ),
+    '#suffix' => '</center>',
+  );
+
+  return $page;
+}
+
+/**
+ * Module Export Form.
+ */
+function kala_migrate_module_form() {
+  $form = array();
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Refresh Module Table Data'),
+    '#submit' => array('kala_migrate_module_form_submit'),
+  );
+  return $form;
+}
+
+/**
+ * Submit handler for csv exports form.
+ */
+function kala_migrate_module_form_submit() {
+  $modules = db_query('SELECT name,info from {system} WHERE type = :type AND status = :status ORDER BY name ASC', array(':type' => 'module', ':status' => 1))->fetchAll();
+
+  foreach ($modules as $module) {
+    if (isset($module->info)) {
+      $info = unserialize($module->info);
+      $operations[] = array('kala_migrate_batch', array($module->name, $info));
+      // Add as $info['migate1'] = trill, etc
+    }
+  }
+
+  // Engage.
+  $batch = array(
+    'title' => t('Assimilating...'),
+    'operations' => $operations,
+    'finished' => 'kala_migrate_batch_finished',
+  );
+
+  batch_set($batch);
 }
