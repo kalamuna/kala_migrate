@@ -44,7 +44,7 @@ $form['FIELDSET']['FIELD_NAME'] = array(
 );
 ```
 
-4. In the _kala_migrate_settings_form_submit add a check and link to function, with the file name:
+4. In the _kala_migrate_settings_form_submit (in includes/export_ui/admin.inc) add a check and link to function, with the file name:
 ```
 if ($values['FIELD_NAME']) {
   $files[] = _kala_migrate_FUNCTION_NAME('FIELD_NAME.csv');
