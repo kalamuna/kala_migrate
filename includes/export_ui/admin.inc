@@ -338,7 +338,9 @@ function kala_migrate_module_form_submit() {
   $modules = _kala_migrate_get_modules();
 
   foreach ($modules as $module) {
-    $operations[] = array('kala_migrate_batch', array($module->name, $module->info));
+    if (!$module->info['skip']) {
+      $operations[] = array('kala_migrate_batch', array($module->name, $module->info));
+    }
   }
 
   // Engage.
@@ -370,6 +372,7 @@ function _kala_migrate_get_modules() {
       $info = unserialize($module->info);
       $output = new stdClass();
       if (isset($info['project']) && !isset($info['features'])) {
+        $info['skip'] = FALSE;
         // Set the object back up.
         $output->name = $info['project'];
         $output->info = $info;
@@ -379,12 +382,15 @@ function _kala_migrate_get_modules() {
         $info = unserialize($module->info);
         if (isset($info['package']) && $info['package'] == 'Core') {
           $info['project'] = 'Core';
+          $info['skip'] = FALSE;
         }
         elseif (isset($info['features'])) {
           $info['project'] = 'Feature';
+          $info['skip'] = TRUE;
         }
         else {
           $info['project'] = 'Custom';
+          $info['skip'] = TRUE;
         }
         // Set the object back up.
         $output->name = $info['project'];
