@@ -110,7 +110,7 @@ function _kala_migrate_curl($url) {
 }
 
 /**
- * String manipulator to return D8 progress link
+ * String manipulator to return D8 progress link.
  *
  * @param string $link
  *   The string to manipulate.
@@ -123,6 +123,6 @@ function _kala_migrate_get_status_link($link) {
   $output = stristr($output, 'a href="');
   $href = explode('"', $output);
   if (isset($href[1])) {
-    return 'http://www.drupal.org/' . $href[1];
+    return 'http://www.drupal.org' . $href[1];
   }
 }

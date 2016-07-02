@@ -241,8 +241,8 @@ function kala_migrate_settings_form_submit($form, &$form_state) {
  * Module Export Page Callback.
  */
 function kala_migrate_module_page() {
-
-  $modules = db_query('SELECT name,info from {system} WHERE type = :type AND status = :status ORDER BY name ASC', array(':type' => 'module', ':status' => 1))->fetchAll();
+  // Grab filtered enabled modules list.
+  $modules = _kala_migrate_get_modules();
 
   // Table Markup.
   $table  = '<table border="1">';
@@ -256,28 +256,46 @@ function kala_migrate_module_page() {
   $table .= '</thead>';
   $table .= '<tbody>';
   foreach ($modules as $module) {
+    // Set info to var for easier using.
+    $info = $module->info;
+
     $table .= '<tr>';
-    if (isset($module->info)) {
-      $info = unserialize($module->info);
-      if (isset($info['project'])) {
-        // Name.
-        $table .= '<td>' . $info['name'] . '</td>';
-        // Project Link,
-        $url = 'http://www.drupal.org/project/' . $info['project'];
-        $url = l($url, check_url($url),
-          array('attributes' => array('target'=>'_blank'))
-        );
-        $table .= '<td>' . $url . '</td>';
-        // Drupal 8 status.
-        $status = isset($info['drupal8status']) ? $info['drupal8status'] : '';
-        $table .= '<td>' . $status . '</td>';
-        // Drupal 8 Status Link.
-        $link = isset($info['drupal8issue']) ?
-                l($info['drupal8issue'], check_url($info['drupal8issue']),
-                  array('attributes' => array('target'=>'_blank'))) : '';
-        $table .= '<td>' . $link . '</td>';
-      }
+
+    // Name.
+    $table .= '<td>' . $info['name'] . '</td>';
+
+    // Project Link or Special.
+    $skip = array('Custom', 'Feature');
+    if (!in_array($info['project'], $skip) && $info['project'] != 'Core') {
+      $url = 'http://www.drupal.org/project/' . $info['project'];
+      $url = l($url, check_url($url),
+        array('attributes' => array('target'=>'_blank'))
+      );
     }
+    else {
+      $url = $info['project'];
+    }
+    $table .= '<td>' . $url . '</td>';
+
+    // Drupal 8 status.
+    if (!in_array($info['project'], $skip)) {
+      $status = isset($info['drupal8status']) ? $info['drupal8status'] : '';
+    }
+    else {
+      $status = $info['project'];
+    }
+    $table .= '<td>' . $status . '</td>';
+
+    // Drupal 8 Status Link.
+    if (!in_array($info['project'], $skip)) {
+      $link = isset($info['drupal8issue']) ?
+              l($info['drupal8issue'], check_url($info['drupal8issue']),
+                array('attributes' => array('target'=>'_blank'))) : '';
+    }
+    else {
+      $link = 'N/A';
+    }
+    $table .= '<td>' . $link . '</td>';
     $table .= '</tr>';
   }
 
@@ -316,14 +334,11 @@ function kala_migrate_module_form() {
  * Submit handler for csv exports form.
  */
 function kala_migrate_module_form_submit() {
-  $modules = db_query('SELECT name,info from {system} WHERE type = :type AND status = :status ORDER BY name ASC', array(':type' => 'module', ':status' => 1))->fetchAll();
+  // Grab filtered enabled modules list.
+  $modules = _kala_migrate_get_modules();
 
   foreach ($modules as $module) {
-    if (isset($module->info)) {
-      $info = unserialize($module->info);
-      $operations[] = array('kala_migrate_batch', array($module->name, $info));
-      // Add as $info['migate1'] = trill, etc
-    }
+    $operations[] = array('kala_migrate_batch', array($module->name, $module->info));
   }
 
   // Engage.
@@ -334,4 +349,50 @@ function kala_migrate_module_form_submit() {
   );
 
   batch_set($batch);
+}
+
+
+/**
+ * Fetch and return object of non duplicate modules.
+ *
+ * @return object
+ *   Modules list.
+ */
+function _kala_migrate_get_modules() {
+  // Grab only active modules.
+  $sql = 'SELECT name,info from {system} WHERE type = :type AND status = :status ORDER BY name ASC';
+  $query = db_query($sql, array(':type' => 'module', ':status' => 1));
+
+  $modules = array();
+  // Go through and remove broken project and other non used things.
+  foreach ($query->fetchAll() as $module) {
+    if (isset($module->info)) {
+      $info = unserialize($module->info);
+      $output = new stdClass();
+      if (isset($info['project']) && !isset($info['features'])) {
+        // Set the object back up.
+        $output->name = $info['project'];
+        $output->info = $info;
+      }
+      else {
+        // Add in special project info for core for later use.
+        $info = unserialize($module->info);
+        if (isset($info['package']) && $info['package'] == 'Core') {
+          $info['project'] = 'Core';
+        }
+        elseif (isset($info['features'])) {
+          $info['project'] = 'Feature';
+        }
+        else {
+          $info['project'] = 'Custom';
+        }
+        // Set the object back up.
+        $output->name = $info['project'];
+        $output->info = $info;
+      }
+      $modules[] = $output;
+    }
+  }
+
+  return $modules;
 }
