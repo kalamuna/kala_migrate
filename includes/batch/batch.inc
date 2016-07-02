@@ -15,36 +15,91 @@ function kala_migrate_batch($name, $blob, &$context) {
   }
   $context['sandbox']['progress']++;
 
-  $url = 'http://www.drupal.org/project/' . $name;
-  $checks = _kala_migrate_curl($url);
-  list($check, $info) = $checks;
-
-  // Is not a bad page
-  if ($info['http_code']) {
-    // check is all the happiness.
-    // Add in info here and pass into CONTEXT
-    // <div class="help">This module has been included with Drupal 8 core. Refer to this <a href="/node/2578705">issue</a> for more information.</div>
-    if (stripos($check, 'view-project-release-download-table') !== FALSE) {
-      // Grab View.
-      $view = explode('<div class="view view-project-release-download-table', $check);
-
-      // Start checking things n stuff.
-      if (isset($view[1])) {
-        // Check if in core.
-        if (stripos($view[1], 'included with Drupal 8 core') !== FALSE) {
-          $blob['drupal8status'] = 'IN CORE';
-          $link = _kala_migrate_get_status_link($view[1]);
-          $blob['drupal8issue'] = $link;
+  // Do current core files different then contrib.
+  if ($name == 'Core') {
+    // Grab module machine name special like since it isn't there.
+    if (isset($blob['files']) && count($blob['files']) > 0) {
+      foreach ($blob['files'] as $file) {
+        if (stripos($file, '/') !== FALSE) {
+          $file = trim(stristr($file, '/'), '/');
         }
+        $file = stristr($file, '.', TRUE);
+        break;
+      }
+    }
+    else {
+      // Ditch effort to try and grab the module name.
+      $file = strtolower($blob['name']);
+    }
+
+    $contrib_now = array('blog','dashboard','openid','poll','trigger');
+    if (in_array($file, $contrib_now)) {
+      $blob['drupal8status'] = 'MOVED TO CONTRIB';
+      $blob['drupal8issue'] = 'http://www.drupal.org/project/' . $file;
+    }
+
+    $removed = array('overlay', 'php');
+    if (in_array($file, $removed)) {
+      $blob['drupal8status'] = 'REMOVED FOR GOOD';
+      $blob['drupal8issue'] = 'REMOVED FOR GOOD';
+    }
+
+    $special = array('profile', 'tensile');
+    if (in_array($file, $special)) {
+      switch ($file) {
+        case 'profile':
+          $blob['drupal8status'] = 'MIGRATED TO PROFILE2';
+          $blob['drupal8issue'] = 'http://www.drupal.org/project/profile2';
+          break;
+
+        case 'tensile':
+          $blob['drupal8status'] = 'MIGRATED TO GITHUB';
+          $blob['drupal8issue'] = 'http://github.com/lewisnyman/tensile';
+          break;
       }
     }
 
-
-    $context['results'][$name] = $blob;
+    // Set this to be won later.
+    $msg = 'CHECKING CORE MODULE - ' . $file;
+    $context['results'][$file] = $blob;
     $context['results']['kala-count'][] = $url;
   }
+  else {
+    // Check contrib modules.
+    $msg = 'CHECKING CONTRIB MODULE - ' . $name;
+    $url = 'http://www.drupal.org/project/' . $name;
+    $checks = _kala_migrate_curl($url);
+    list($check, $info) = $checks;
 
-  $context['message'] = t('Now assimilating %url', array('%url' => $url));
+
+    // Is not a bad page
+    if ($info['http_code']) {
+      // check is all the happiness.
+      // Add in info here and pass into CONTEXT
+      // <div class="help">This module has been included with Drupal 8 core. Refer to this <a href="/node/2578705">issue</a> for more information.</div>
+      if (stripos($check, 'view-project-release-download-table') !== FALSE) {
+        // Grab View.
+        $view = explode('<div class="view view-project-release-download-table', $check);
+
+        // Start checking things n stuff.
+        if (isset($view[1])) {
+          // Check if in core.
+          if (stripos($view[1], 'included with Drupal 8 core') !== FALSE) {
+            $blob['drupal8status'] = 'IN CORE';
+            $link = _kala_migrate_get_status_link($view[1]);
+            $blob['drupal8issue'] = $link;
+          }
+        }
+      }
+
+      // Set this to be won later.
+      $context['results'][$name] = $blob;
+      $context['results']['kala-count'][] = $url;
+    }
+  }
+
+  // Message of winning.
+  $context['message'] = t('Now assimilating module %m', array('%m' => $msg));
 }
 
 /*

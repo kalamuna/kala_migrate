@@ -244,63 +244,42 @@ function kala_migrate_module_page() {
   // Grab filtered enabled modules list.
   $modules = _kala_migrate_get_modules();
 
-  // Table Markup.
-  $table  = '<table border="1">';
-  $table .= '<thead>';
-  $table .= '<tr>';
-  $table .= '<th>Module Name</th>';
-  $table .= '<th>Module Link</th>';
-  $table .= '<th>D8 Status</th>';
-  $table .= '<th>D8 Issue Progress Link</th>';
-  $table .= '</tr>';
-  $table .= '</thead>';
-  $table .= '<tbody>';
+  // Begin Tables Markup
+  $tables = '';
+
+  // Filter the module respectively for happy table factoring.
   foreach ($modules as $module) {
-    // Set info to var for easier using.
-    $info = $module->info;
-
-    $table .= '<tr>';
-
-    // Name.
-    $table .= '<td>' . $info['name'] . '</td>';
-
-    // Project Link or Special.
-    $skip = array('Custom', 'Feature');
-    if (!in_array($info['project'], $skip) && $info['project'] != 'Core') {
-      $url = 'http://www.drupal.org/project/' . $info['project'];
-      $url = l($url, check_url($url),
-        array('attributes' => array('target'=>'_blank'))
-      );
+    switch ($module->info['module-type']) {
+      case 'Contrib':
+        $contrib[] = _kala_migrate_module_filter($module->info['project'], $module->info);
+        break;
+      case 'Core':
+        $core[] = _kala_migrate_module_filter($module->info['module-type'], $module->info);
+        break;
+      case 'Custom':
+        $custom[] = _kala_migrate_module_filter($module->info['module-type'], $module->info);
+        break;
+      case 'Feature':
+        $features[] = _kala_migrate_module_filter($module->info['module-type'], $module->info);
+        break;
     }
-    else {
-      $url = $info['project'];
-    }
-    $table .= '<td>' . $url . '</td>';
-
-    // Drupal 8 status.
-    if (!in_array($info['project'], $skip)) {
-      $status = isset($info['drupal8status']) ? $info['drupal8status'] : '';
-    }
-    else {
-      $status = $info['project'];
-    }
-    $table .= '<td>' . $status . '</td>';
-
-    // Drupal 8 Status Link.
-    if (!in_array($info['project'], $skip)) {
-      $link = isset($info['drupal8issue']) ?
-              l($info['drupal8issue'], check_url($info['drupal8issue']),
-                array('attributes' => array('target'=>'_blank'))) : '';
-    }
-    else {
-      $link = 'N/A';
-    }
-    $table .= '<td>' . $link . '</td>';
-    $table .= '</tr>';
   }
 
-  $table .= '</tbody>';
-  $table .= '</table>';
+  // Generate Contrib Table.
+  $tables .= '<h2>' . t('CONTRIB MODULES') . '</h2>';
+  $tables .= _kala_migrate_generate_table($contrib, 'Contrib');
+
+  // Grab Core Table.
+  $tables .= '<h2>' . t('CORE MODULES') . '</h2>';
+  $tables .= _kala_migrate_generate_table($core, 'Core');
+
+  // Grab Custom Table.
+  $tables .= '<h2>' . t('CUSTOM MODULES') . '</h2>';
+  $tables .= _kala_migrate_generate_table($custom, 'Custom');
+
+  // Grab Features Table.
+  $tables .= '<h2>' . t('FEATURES') . '</h2>';
+  $tables .= _kala_migrate_generate_table($features, 'Feature');
 
   // Grab the refresh form button.
   $form = drupal_get_form('kala_migrate_module_form');
@@ -309,7 +288,7 @@ function kala_migrate_module_page() {
     '#prefix' => '<center>',
     'form' => $form,
     'table' => array(
-      '#markup' => $table,
+      '#markup' => $tables,
     ),
     '#suffix' => '</center>',
   );
@@ -343,16 +322,16 @@ function kala_migrate_module_form_submit() {
     }
   }
 
-  // Engage.
+  // Set Batch fun stuff.
   $batch = array(
     'title' => t('Assimilating...'),
     'operations' => $operations,
     'finished' => 'kala_migrate_batch_finished',
   );
 
+  // Engage.
   batch_set($batch);
 }
-
 
 /**
  * Fetch and return object of non duplicate modules.
@@ -372,6 +351,7 @@ function _kala_migrate_get_modules() {
       $info = unserialize($module->info);
       $output = new stdClass();
       if (isset($info['project']) && !isset($info['features'])) {
+        $info['module-type'] = 'Contrib';
         $info['skip'] = FALSE;
         // Set the object back up.
         $output->name = $info['project'];
@@ -381,19 +361,19 @@ function _kala_migrate_get_modules() {
         // Add in special project info for core for later use.
         $info = unserialize($module->info);
         if (isset($info['package']) && $info['package'] == 'Core') {
-          $info['project'] = 'Core';
+          $info['module-type'] = 'Core';
           $info['skip'] = FALSE;
         }
         elseif (isset($info['features'])) {
-          $info['project'] = 'Feature';
+          $info['module-type'] = 'Feature';
           $info['skip'] = TRUE;
         }
         else {
-          $info['project'] = 'Custom';
+          $info['module-type'] = 'Custom';
           $info['skip'] = TRUE;
         }
         // Set the object back up.
-        $output->name = $info['project'];
+        $output->name = $info['module-type'];
         $output->info = $info;
       }
       $modules[] = $output;
@@ -401,4 +381,123 @@ function _kala_migrate_get_modules() {
   }
 
   return $modules;
+}
+
+/**
+ * Filter and rebuild object for Module based on module-type
+ *
+ * @param string $name
+ *  Project or Module Type name
+ *
+ * @param object $info
+ *   The info BLOB.
+ *
+ * @return object
+ *   Filtered newly formatted object.
+ */
+function _kala_migrate_module_filter($name, $info) {
+  $output = new stdClass();
+  $output->name = $name;
+  $output->info = $info;
+  return $output;
+}
+
+/**
+ * Generate Table Layout for the module page.
+ *
+ * @param object $modules
+ *   Array of module object from the DB.
+ *
+ * @param string $type
+ *  Module classification identifier.
+ *
+ * @return string
+ *   HTML formatted table.
+ */
+function _kala_migrate_generate_table($modules, $type) {
+
+  // Table Markup.
+  $table  = '<table border="1" style="width:100%;">';
+  $table .= '<thead>';
+  $table .= '<tr>';
+  $table .= '<th>Module Name</th>';
+  $table .= '<th>Module Link</th>';
+  $table .= '<th>D8 Status</th>';
+  $table .= '<th>D8 Issue Progress Link</th>';
+  $table .= '</tr>';
+  $table .= '</thead>';
+  $table .= '<tbody>';
+  foreach ($modules as $module) {
+    // Set info to var for easier using.
+    $info = $module->info;
+
+    $table .= '<tr>';
+
+    // Name.
+    $table .= '<td>' . $info['name'] . '</td>';
+
+    // Go through and format based on type.
+    switch ($type) {
+      // Contrib modules.
+      case 'Contrib':
+        // Project Link or Special.
+        $url = 'http://www.drupal.org/project/' . $info['project'];
+        $url = l($url, check_url($url),
+          array('attributes' => array('target'=>'_blank'))
+        );
+        $table .= '<td>' . $url . '</td>';
+
+        // Drupal 8 status.
+        $status = isset($info['drupal8status']) ? $info['drupal8status'] : '';
+        $table .= '<td>' . $status . '</td>';
+
+        // Drupal 8 Status Link.
+        $link = isset($info['drupal8issue']) ?
+                l($info['drupal8issue'], check_url($info['drupal8issue']),
+                  array('attributes' => array('target'=>'_blank'))) : '';
+        $table .= '<td>' . $link . '</td>';
+        break;
+
+      case 'Core':
+        // Project Link or Special.
+        $table .= '<td>CORE</td>';
+
+        // Drupal 8 status.
+        $status = isset($info['drupal8status']) ? $info['drupal8status'] : 'IN CORE';
+        $table .= '<td>' . $status . '</td>';
+
+        // Drupal 8 Status Link.
+        if (isset($info['drupal8issue'])) {
+          if (stripos($info['drupal8issue'], 'http://') !== FALSE) {
+            $link = l($info['drupal8issue'], check_url($info['drupal8issue']),
+                    array('attributes' => array('target'=>'_blank')));
+          }
+          else {
+            $link = $info['drupal8issue'];
+          }
+        }
+        else {
+          $link = 'IN CORE';
+        }
+        $table .= '<td>' . $link . '</td>';
+        break;
+
+      // Custom or Feature.
+      default:
+        // Project Link or Special.
+        $table .= '<td>'. $type . '</td>';
+
+        // Drupal 8 status.
+        $table .= '<td>'. $type . '</td>';
+
+        // Drupal 8 Status Link.
+        $table .= '<td>N/A</td>';
+    }
+
+    $table .= '</tr>';
+  }
+
+  $table .= '</tbody>';
+  $table .= '</table>';
+  return $table;
 }
