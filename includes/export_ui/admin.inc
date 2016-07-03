@@ -251,7 +251,7 @@ function kala_migrate_module_page() {
   foreach ($modules as $module) {
     switch ($module->info['module-type']) {
       case 'Contrib':
-        $contrib[] = _kala_migrate_module_filter($module->info['project'], $module->info);
+        $contrib[] = _kala_migrate_module_filter($module->name, $module->info);
         break;
       case 'Core':
         $core[] = _kala_migrate_module_filter($module->info['module-type'], $module->info);
@@ -361,8 +361,18 @@ function _kala_migrate_get_modules() {
       if (isset($info['project']) && !isset($info['features'])) {
         $info['module-type'] = 'Contrib';
         $info['skip'] = FALSE;
+        // Check if submodule.
+        if (isset($info['dependencies'])) {
+          foreach ($info['dependencies'] as $deps) {
+            $dep = explode('_', $deps);
+            $proj = explode('_', $info['project']);
+            if (isset($dep[0]) && isset($proj[0]) && $dep[0] == $proj[0])  {
+              $info['submodule'] = $info['project'];
+            }
+          }
+        }
         // Set the object back up.
-        $output->name = $info['project'];
+        $output->name = $module->name;
         $output->info = $info;
       }
       else {
@@ -471,25 +481,30 @@ function _kala_migrate_generate_table($modules, $type) {
     switch ($type) {
       // Contrib modules.
       case 'Contrib':
-        // Project Link or Special.
-        $url = 'http://www.drupal.org/project/' . $info['project'];
-        $url = l($url, check_url($url),
-          array('attributes' => array('target'=>'_blank'))
-        );
-        $table .= '<td>' . $url . '</td>';
+        if (!isset($info['submodule'])) {
+          // Project Link or Special.
+          $url = 'http://www.drupal.org/project/' . $info['project'];
+          $url = l($url, check_url($url),
+            array('attributes' => array('target'=>'_blank'))
+          );
+          $table .= '<td>' . $url . '</td>';
 
-        // Drupal 8 status.
-        $status = isset($info['drupal8status']) ? $info['drupal8status'] : '';
-        $table .= '<td>' . $status . '</td>';
+          // Drupal 8 status.
+          $status = isset($info['drupal8status']) ? $info['drupal8status'] : '';
+          $table .= '<td>' . $status . '</td>';
 
-        $version = isset($info['drupal8ver']) ? $info['drupal8ver'] : '';
-        $table .= '<td>' . $version . '</td>';
+          $version = isset($info['drupal8ver']) ? $info['drupal8ver'] : '';
+          $table .= '<td>' . $version . '</td>';
 
-        // Drupal 8 Status Link.
-        $link = isset($info['drupal8issue']) ?
-                l($info['drupal8issue'], check_url($info['drupal8issue']),
-                  array('attributes' => array('target'=>'_blank'))) : '';
-        $table .= '<td>' . $link . '</td>';
+          // Drupal 8 Status Link.
+          $link = isset($info['drupal8issue']) ?
+                  l($info['drupal8issue'], check_url($info['drupal8issue']),
+                    array('attributes' => array('target'=>'_blank'))) : '';
+          $table .= '<td>' . $link . '</td>';
+        }
+        else {
+          $table .= '<td colspan="4"><center>Submodule of ' . $info['submodule'] . '</center></td>';
+        }
         break;
 
       case 'Core':

@@ -60,20 +60,19 @@ function kala_migrate_batch($name, $blob, &$context) {
     }
 
     // Set this to be won later.
-    $msg = 'CHECKING CORE MODULE - ' . $file;
+    $msg = 'CORE MODULE - ' . $file;
     $context['results'][$file] = $blob;
     $context['results']['kala-count'][] = $url;
   }
   else {
     // Check contrib modules.
-    $msg = 'CHECKING CONTRIB MODULE - ' . $name;
-    $url = 'http://www.drupal.org/project/' . $name;
+    $msg = 'CONTRIB MODULE - ' . $name;
+    $url = 'http://www.drupal.org/project/' . $blob['project'];
     $checks = _kala_migrate_curl($url);
     list($check, $info) = $checks;
 
-
     // Is not a bad page
-    if ($info['http_code']) {
+    if ($info['http_code'] && !isset($blob['submodule'])) {
       // Go through the release table info.
       if (stripos($check, 'view-project-release-download-table') !== FALSE) {
         // Grab Help Text
