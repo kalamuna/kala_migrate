@@ -74,20 +74,42 @@ function kala_migrate_batch($name, $blob, &$context) {
 
     // Is not a bad page
     if ($info['http_code']) {
-      // check is all the happiness.
-      // Add in info here and pass into CONTEXT
-      // <div class="help">This module has been included with Drupal 8 core. Refer to this <a href="/node/2578705">issue</a> for more information.</div>
+      // Go through the release table info.
       if (stripos($check, 'view-project-release-download-table') !== FALSE) {
-        // Grab View.
-        $view = explode('<div class="view view-project-release-download-table', $check);
+        // Grab Help Text
+        $help = _kala_migrate_get_between($check, '<div class="help">', '</div>');
 
         // Start checking things n stuff.
-        if (isset($view[1])) {
+        if (!empty($help)) {
           // Check if in core.
-          if (stripos($view[1], 'included with Drupal 8 core') !== FALSE) {
+          if (stripos($help, 'included with Drupal 8 core') !== FALSE) {
             $blob['drupal8status'] = 'IN CORE';
-            $link = _kala_migrate_get_status_link($view[1]);
-            $blob['drupal8issue'] = $link;
+            $blob['drupal8ver'] = 'N/A';
+            $link = _kala_migrate_get_status_link($help);
+            $blob['drupal8issue'] = !empty($link) ? $link : '';
+          }
+          // Renamed or depreciated.
+          if (stripos($help, 'module has been renamed or deprecated') !== FALSE) {
+            $blob['drupal8status'] = 'RENAMED OR DEPRECIATED';
+            $blob['drupal8ver'] = 'N/A';
+            $link = _kala_migrate_get_status_link($help);
+            $blob['drupal8issue'] = !empty($link) ? $link : '';
+          }
+          // Not been ported.
+          if (stripos($help, 'module has not been ported') !== FALSE) {
+            $version = _kala_migrate_grab_version($check);
+            $blob['drupal8status'] = empty($version) ? 'NOT PORTED YET' : 'IN PROGRESS';
+            $blob['drupal8ver'] = !empty($version) ? $version : 'NONE';
+            $link = _kala_migrate_get_status_link($help);
+            $blob['drupal8issue'] = !empty($link) ? $link : '';
+          }
+          // Porting now.
+          if (stripos($help, 'currently being ported') !== FALSE) {
+            $blob['drupal8status'] = 'IN PROGRESS';
+            $version = _kala_migrate_grab_version($check);
+            $blob['drupal8ver'] = !empty($version) ? $version : 'NONE';
+            $link = _kala_migrate_get_status_link($help);
+            $blob['drupal8issue'] = !empty($link) ? $link : '';
           }
         }
       }
@@ -164,20 +186,85 @@ function _kala_migrate_curl($url) {
   return $result;
 }
 
+
+/**
+ * Helper function for getting text between 2 identified strings.
+ * Can be easier then using regex and preg type functions.
+ *
+ * @param  string $content
+ *   String we are checking.
+ *
+ * @param  string $start
+ *   Starting Position of check.
+ *
+ * @param  string $end
+ *   End Position of check
+ *
+ * @return string
+ *   What was in between the 2 or empty.
+ */
+function _kala_migrate_get_between($content, $start, $end) {
+  // Explode this and let's find our stuff.
+  $r = explode($start, $content);
+  if (isset($r[1])){
+    $r = explode($end, $r[1]);
+    return $r[0];
+  }
+  // Return empty of nothing can be found.
+  return '';
+}
+
 /**
  * String manipulator to return D8 progress link.
  *
- * @param string $link
+ * @param string $help
  *   The string to manipulate.
  *
  * @return string
  *   The url of the issue.
  */
-function _kala_migrate_get_status_link($link) {
-  $output = stristr($link, ' for more information.', TRUE);
-  $output = stristr($output, 'a href="');
-  $href = explode('"', $output);
-  if (isset($href[1])) {
-    return 'http://www.drupal.org' . $href[1];
+function _kala_migrate_get_status_link($help) {
+  // Run href and return it properly formatted.
+  $link = _kala_migrate_get_between($help, '<a href="', '">');
+  return !empty($link) ? 'http://www.drupal.org' . $link : '';
+}
+
+/**
+ * Try and Grab D8 Verision.
+ *
+ * @param string $check
+ *   The string to manipulate.
+ *
+ * @return string
+ *   The version number or empty if none found.
+ */
+function _kala_migrate_grab_version($check) {
+  // Grab the downloads section
+  $dloads = stristr($check, '<h3>Downloads</h3>');
+  // Look through the table for the version.
+  $tds = explode('<td', $dloads);
+  if (isset($tds[1])) {
+    foreach ($tds as $td) {
+      // Grab all releases.
+      $ver_grabs[] = _kala_migrate_get_between($td, 'releases/', '">');
+    }
+    $ver_grabs = array_filter($ver_grabs);
+    // Filter out D8 versions.
+    foreach ($ver_grabs as $ver) {
+      if (stripos($ver, '8.x-') !== FALSE) {
+        if (stripos($ver, '-dev') !== FALSE) {
+          $vers['dev'] = $ver;
+        }
+        else {
+          $vers['stable'] = $ver;
+        }
+      }
+    }
+    // Send this out the door.
+    if (isset($vers)) {
+      return array_key_exists('stable', $vers) ? $vers['stable'] : $vers['dev'];
+    }
   }
+
+  return '';
 }

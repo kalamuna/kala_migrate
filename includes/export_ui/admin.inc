@@ -266,20 +266,28 @@ function kala_migrate_module_page() {
   }
 
   // Generate Contrib Table.
-  $tables .= '<h2>' . t('CONTRIB MODULES') . '</h2>';
-  $tables .= _kala_migrate_generate_table($contrib, 'Contrib');
+  if (isset($contrib)) {
+    $tables .= '<h2>' . t('CONTRIB MODULES') . '</h2>';
+    $tables .= _kala_migrate_generate_table($contrib, 'Contrib');
+  }
 
   // Grab Core Table.
-  $tables .= '<h2>' . t('CORE MODULES') . '</h2>';
-  $tables .= _kala_migrate_generate_table($core, 'Core');
+  if (isset($core)) {
+    $tables .= '<h2>' . t('CORE MODULES') . '</h2>';
+    $tables .= _kala_migrate_generate_table($core, 'Core');
+  }
 
   // Grab Custom Table.
-  $tables .= '<h2>' . t('CUSTOM MODULES') . '</h2>';
-  $tables .= _kala_migrate_generate_table($custom, 'Custom');
+  if (isset($custom)) {
+    $tables .= '<h2>' . t('CUSTOM MODULES') . '</h2>';
+    $tables .= _kala_migrate_generate_table($custom, 'Custom');
+  }
 
   // Grab Features Table.
-  $tables .= '<h2>' . t('FEATURES') . '</h2>';
-  $tables .= _kala_migrate_generate_table($features, 'Feature');
+  if (isset($features)) {
+    $tables .= '<h2>' . t('FEATURES') . '</h2>';
+    $tables .= _kala_migrate_generate_table($features, 'Feature');
+  }
 
   // Grab the refresh form button.
   $form = drupal_get_form('kala_migrate_module_form');
@@ -420,13 +428,36 @@ function _kala_migrate_generate_table($modules, $type) {
   $table  = '<table border="1" style="width:100%;">';
   $table .= '<thead>';
   $table .= '<tr>';
-  $table .= '<th>Module Name</th>';
-  $table .= '<th>Module Link</th>';
-  $table .= '<th>D8 Status</th>';
-  $table .= '<th>D8 Issue Progress Link</th>';
+
+  // Different column layout based on types.
+  switch ($type) {
+    case 'Contrib':
+      $table .= '<th>Module Name</th>';
+      $table .= '<th>Module Link</th>';
+      $table .= '<th>D8 Status</th>';
+      $table .= '<th>D8 Module Version</th>';
+      $table .= '<th>D8 Issue Progress Link</th>';
+      break;
+
+    case 'Core':
+      $table .= '<th>Module Name</th>';
+      $table .= '<th>Module Link</th>';
+      $table .= '<th>D8 Status</th>';
+      $table .= '<th>D8 Issue Progress Link</th>';
+      break;
+
+    // Custom or Feature.
+    default:
+      $table .= '<th>Module Name</th>';
+      $table .= '<th>Module Type</th>';
+      break;
+  }
+
   $table .= '</tr>';
   $table .= '</thead>';
   $table .= '<tbody>';
+
+  // Go through and lets do this.
   foreach ($modules as $module) {
     // Set info to var for easier using.
     $info = $module->info;
@@ -450,6 +481,9 @@ function _kala_migrate_generate_table($modules, $type) {
         // Drupal 8 status.
         $status = isset($info['drupal8status']) ? $info['drupal8status'] : '';
         $table .= '<td>' . $status . '</td>';
+
+        $version = isset($info['drupal8ver']) ? $info['drupal8ver'] : '';
+        $table .= '<td>' . $version . '</td>';
 
         // Drupal 8 Status Link.
         $link = isset($info['drupal8issue']) ?
@@ -486,12 +520,6 @@ function _kala_migrate_generate_table($modules, $type) {
       default:
         // Project Link or Special.
         $table .= '<td>'. $type . '</td>';
-
-        // Drupal 8 status.
-        $table .= '<td>'. $type . '</td>';
-
-        // Drupal 8 Status Link.
-        $table .= '<td>N/A</td>';
     }
 
     $table .= '</tr>';
