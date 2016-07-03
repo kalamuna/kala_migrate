@@ -364,9 +364,7 @@ function _kala_migrate_get_modules() {
         // Check if submodule.
         if (isset($info['dependencies'])) {
           foreach ($info['dependencies'] as $deps) {
-            $dep = explode('_', $deps);
-            $proj = explode('_', $info['project']);
-            if (isset($dep[0]) && isset($proj[0]) && $dep[0] == $proj[0])  {
+            if ($deps == $info['project'])  {
               $info['submodule'] = $info['project'];
             }
           }

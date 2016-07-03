@@ -71,7 +71,7 @@ function kala_migrate_batch($name, $blob, &$context) {
     $checks = _kala_migrate_curl($url);
     list($check, $info) = $checks;
 
-    // Is not a bad page
+    // Is not a bad page && not submodule.
     if ($info['http_code'] && !isset($blob['submodule'])) {
       // Go through the release table info.
       if (stripos($check, 'view-project-release-download-table') !== FALSE) {
@@ -120,7 +120,7 @@ function kala_migrate_batch($name, $blob, &$context) {
   }
 
   // Message of winning.
-  $context['message'] = t('Now assimilating module %m', array('%m' => $msg));
+  $context['message'] = t('Now assimilating %m', array('%m' => $msg));
 }
 
 /*
