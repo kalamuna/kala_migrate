@@ -310,11 +310,11 @@ function _kala_migrate_generate_table($modules, $type) {
         $table .= '<td>CORE</td>';
 
         // Drupal 8 status.
-        $status = isset($info['drupal8status']) ? $info['drupal8status'] : 'IN CORE';
-        $table .= '<td>' . $status . '</td>';
-
-        // Drupal 8 Status Link.
         if (isset($info['drupal8issue'])) {
+          $status = isset($info['drupal8status']) ? $info['drupal8status'] : 'IN CORE';
+          $table .= '<td>' . $status . '</td>';
+
+          // Drupal 8 Status Link.
           if (stripos($info['drupal8issue'], 'http://') !== FALSE) {
             $link = l($info['drupal8issue'], check_url($info['drupal8issue']),
                     array('attributes' => array('target'=>'_blank')));
@@ -322,11 +322,12 @@ function _kala_migrate_generate_table($modules, $type) {
           else {
             $link = $info['drupal8issue'];
           }
+
+          $table .= '<td>' . $link . '</td>';
         }
         else {
-          $link = 'IN CORE';
+          $table .= '<td colspan="3">STILL IN CORE</td>';
         }
-        $table .= '<td>' . $link . '</td>';
         break;
 
       // Custom or Feature.
@@ -381,13 +382,21 @@ function _kala_migrate_css_class($info, $type) {
         break;
     }
     // Set up the css fun.
-    if (isset($class_apply) && !empty($class_apply)) {
+    if (!empty($class_apply)) {
       $class = ' class="' . $class_apply . '"';
     }
   }
   elseif (isset($info['submodule'])) {
     $class = ' class="submodule"';
   }
-
+  elseif ($type == 'Core') {
+    if (!isset($info['drupal8status'])) {
+      $class = ' class="core"';
+    }
+    else {
+      $class = ' class="not-ported"';
+    }
+  }
+  // Send back class or empty for fun styling.
   return $class;
 }
