@@ -1,8 +1,12 @@
 # Kala Migrate
 
-Help with reporting of items that need to be migrated in a Drupal upgrade.
+Help with reporting of items that need to be migrated in a Drupal 7 to Drupal 8 upgrade.
 
-Outputs a ZIP file that contains CSV's in utf-8 chatcter set.  Make sure you change your character set encoding to match if using LibreCalc.
+The CSV Exports Outputs a ZIP file that contains CSV's in utf-8 chatcter set.  Make sure you change your character set encoding to match if using LibreCalc.
+
+The Module Page uses cURL when you press the fancy button.  It shoots out numerous cURL requests, so make sure your host or local can handle these things.
+
+Configuration page can be found at: admin/config/development/kala_migrate
 
 ## Create your own (aka Plugins)
 
@@ -52,6 +56,12 @@ if ($values['FIELD_NAME']) {
 ```
 
 FIN!
+
+## Module Page
+
+This page will give you displays all enabled modules (contrib, core, custom & features) + for contrib & core it displays their d8 status + the issue link for it if it exists.
+
+It is color coded to help your eyes not bleed.
 
 ## Functions
 
