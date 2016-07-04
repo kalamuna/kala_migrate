@@ -125,6 +125,7 @@ function kala_migrate_batch($name, $blob, &$context) {
             foreach ($statuses as $status) {
               if (stripos($version, $status) !== FALSE) {
                 $blob['drupal8status'] = 'IN PROGRESS';
+                break;
               }
               else {
                 $blob['drupal8status'] = 'PORTED';
