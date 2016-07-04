@@ -241,6 +241,10 @@ function kala_migrate_settings_form_submit($form, &$form_state) {
  * Module Export Page Callback.
  */
 function kala_migrate_module_page() {
+  // Add the css
+  $module = drupal_get_path('module', 'kala_migrate');
+  drupal_add_css($module . '/css/kala-migrate.css');
+
   // Grab filtered enabled modules list.
   $modules = _kala_migrate_get_modules();
 
@@ -433,7 +437,7 @@ function _kala_migrate_module_filter($name, $info) {
 function _kala_migrate_generate_table($modules, $type) {
 
   // Table Markup.
-  $table  = '<table border="1" style="width:100%;">';
+  $table  = '<table id="kala-migrate">';
   $table .= '<thead>';
   $table .= '<tr>';
 
@@ -470,9 +474,13 @@ function _kala_migrate_generate_table($modules, $type) {
     // Set info to var for easier using.
     $info = $module->info;
 
-    $table .= '<tr>';
+    // Go through and grab status for class.
+    $class = _kala_migrate_css_class($info, $type);
 
-    // Name.
+    // Opening row with fancy class.
+    $table .= '<tr ' . $class . '>';
+
+    // Name of thy module..
     $table .= '<td>' . $info['name'] . '</td>';
 
     // Go through and format based on type.
@@ -495,9 +503,18 @@ function _kala_migrate_generate_table($modules, $type) {
           $table .= '<td>' . $version . '</td>';
 
           // Drupal 8 Status Link.
-          $link = isset($info['drupal8issue']) ?
-                  l($info['drupal8issue'], check_url($info['drupal8issue']),
-                    array('attributes' => array('target'=>'_blank'))) : '';
+          if (isset($info['drupal8issue'])) {
+            if (stripos($info['drupal8issue'], 'http://') !== FALSE) {
+              $link = l($info['drupal8issue'], check_url($info['drupal8issue']),
+                      array('attributes' => array('target'=>'_blank')));
+            }
+            else {
+              $link = $info['drupal8issue'];
+            }
+          }
+          else {
+            $link = 'NONE';
+          }
           $table .= '<td>' . $link . '</td>';
         }
         else {
@@ -541,4 +558,53 @@ function _kala_migrate_generate_table($modules, $type) {
   $table .= '</tbody>';
   $table .= '</table>';
   return $table;
+}
+
+/**
+ * Generates CSS class for table row & cell.
+ *
+ * @param object $info
+ *   The info BLOB.
+ *
+ * @param string $type
+ *  Module classification identifier.
+ *
+ * @return string
+ *   The class or empty..
+ */
+function _kala_migrate_css_class($info, $type) {
+  $class = $class_apply = '';
+  if (isset($info['drupal8status']) && $type == 'Contrib') {
+    // Lets check whats up
+    switch ($info['drupal8status']) {
+      case 'IN CORE':
+        $class_apply = 'core';
+        break;
+
+      case 'NOT PORTED YET':
+        $class_apply = 'not-ported';
+        break;
+
+      case 'RENAMED OR DEPRECIATED':
+        $class_apply = 'removed';
+        break;
+
+      case 'IN PROGRESS':
+        $class_apply = 'inprogress';
+        break;
+
+      case 'PORTED':
+        $class_apply = 'ported';
+        break;
+    }
+    // Set up the css fun.
+    if (isset($class_apply) && !empty($class_apply)) {
+      $class = ' class="' . $class_apply . '"';
+    }
+  }
+  elseif (isset($info['submodule'])) {
+    $class = ' class="submodule"';
+  }
+
+  return $class;
 }

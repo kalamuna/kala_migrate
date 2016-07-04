@@ -104,11 +104,35 @@ function kala_migrate_batch($name, $blob, &$context) {
           }
           // Porting now.
           if (stripos($help, 'currently being ported') !== FALSE) {
-            $blob['drupal8status'] = 'IN PROGRESS';
             $version = _kala_migrate_grab_version($check);
+            $blob['drupal8status'] = empty($version) ? 'NOT PORTED YET' : 'IN PROGRESS';
             $blob['drupal8ver'] = !empty($version) ? $version : 'NONE';
             $link = _kala_migrate_get_status_link($help);
             $blob['drupal8issue'] = !empty($link) ? $link : '';
+          }
+        }
+        else {
+          // These are pages without the help text / issue.
+          $version = _kala_migrate_grab_version($check);
+          if (empty($version)) {
+            $blob['drupal8status'] = 'NOT PORTED YET';
+            $blob['drupal8ver'] = 'NONE';
+            $blob['drupal8issue'] = 'NONE';
+          }
+          else {
+            // If there is still these fun tags, then it isn't full ported.
+            $statuses = array('unstable', 'alpha', 'beta', 'rc', 'dev');
+            foreach ($statuses as $status) {
+              if (stripos($version, $status) !== FALSE) {
+                $blob['drupal8status'] = 'IN PROGRESS';
+              }
+              else {
+                $blob['drupal8status'] = 'PORTED';
+              }
+            }
+            $blob['drupal8ver'] = $version;
+            $link = _kala_migrate_get_status_link($help);
+            $blob['drupal8issue'] = !empty($link) ? $link : 'NONE';
           }
         }
       }

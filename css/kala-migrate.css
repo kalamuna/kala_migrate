@@ -1,0 +1,62 @@
+/**
+ * Kala Migrate CSS
+ */
+
+table#kala-migrate {
+  width: 100%;
+  border: 1px solid black;
+}
+
+table#kala-migrate th,
+table#kala-migrate tr,
+table#kala-migrate td {
+  border: 1px solid black;
+  padding: 5px 2px;
+}
+
+table#kala-migrate th {
+  background-color: #CCCCCC;
+  color: black;
+}
+
+table#kala-migrate tr,
+table#kala-migrate td {
+  background-color: white;
+  color: black;
+}
+
+table#kala-migrate tr.submodule td,
+table#kala-migrate tr.submodule td a {
+  background-color: #666666;
+  color: white;
+}
+
+table#kala-migrate tr.core td,
+table#kala-migrate tr.core td a {
+  background-color: #2D4471;
+  color: white;
+}
+
+table#kala-migrate tr.not-ported td,
+table#kala-migrate tr.not-ported td a {
+  background-color: #AA0505;
+  color: white;
+}
+
+table#kala-migrate tr.removed td,
+table#kala-migrate tr.removed td a {
+  background-color: #222222;
+  color: white;
+}
+
+table#kala-migrate tr.inprogress td,
+table#kala-migrate tr.inprogress td a {
+  background-color: #AAA039;
+  color: black;
+}
+
+table#kala-migrate tr.ported td,
+table#kala-migrate tr.ported td a {
+  background-color: #277554;
+  color: black;
+}
