@@ -1,12 +1,11 @@
 <?php
 /**
  * @file
- * Batch function
+ * Batch functions.
  */
 
-
-/*
- * Batch for ALL CMS function.
+/**
+ * Batch function for processing contrib and core modules.
  */
 function kala_migrate_batch($name, $blob, &$context) {
   // Update our progress information.
@@ -94,18 +93,25 @@ function kala_migrate_batch($name, $blob, &$context) {
             $link = _kala_migrate_get_status_link($help);
             $blob['drupal8issue'] = !empty($link) ? $link : '';
           }
-          // Not been ported.
-          if (stripos($help, 'module has not been ported') !== FALSE) {
+          // Not been ported, Pre Release, Porting Now or Unknown, etc.
+          else {
             $version = _kala_migrate_grab_version($check);
-            $blob['drupal8status'] = empty($version) ? 'NOT PORTED YET' : 'IN PROGRESS';
-            $blob['drupal8ver'] = !empty($version) ? $version : 'NONE';
-            $link = _kala_migrate_get_status_link($help);
-            $blob['drupal8issue'] = !empty($link) ? $link : '';
-          }
-          // Porting now.
-          if (stripos($help, 'currently being ported') !== FALSE) {
-            $version = _kala_migrate_grab_version($check);
-            $blob['drupal8status'] = empty($version) ? 'NOT PORTED YET' : 'IN PROGRESS';
+            if (empty($version)) {
+              $blob['drupal8status'] = 'NOT PORTED YET';
+            }
+            else {
+              // If there is still these fun tags, then it isn't full ported.
+              $statuses = array('unstable', 'alpha', 'beta', 'rc', 'dev');
+              foreach ($statuses as $status) {
+                if (stripos($version, $status) !== FALSE) {
+                  $blob['drupal8status'] = 'IN PROGRESS';
+                  break;
+                }
+                else {
+                  $blob['drupal8status'] = 'PORTED';
+                }
+              }
+            }
             $blob['drupal8ver'] = !empty($version) ? $version : 'NONE';
             $link = _kala_migrate_get_status_link($help);
             $blob['drupal8issue'] = !empty($link) ? $link : '';
@@ -148,12 +154,11 @@ function kala_migrate_batch($name, $blob, &$context) {
   $context['message'] = t('Now assimilating %m', array('%m' => $msg));
 }
 
-/*
- * Batch finished
+/**
+ * Batch finished function.
  */
 function kala_migrate_batch_finished($success, $results, $operations) {
-  // The 'success' parameter means no fatal PHP errors were detected. All
-  // other error management should be handled using 'results'.
+  // go through success and grab what we need.
   $items = array();
   if ($success) {
     $message = format_plural(count($results['kala-count']), 'One module assimilated.', '@count modules assimilated.');
@@ -163,14 +168,15 @@ function kala_migrate_batch_finished($success, $results, $operations) {
   }
   drupal_set_message($message);
 
+
   foreach ($results as $key => $result) {
     if ($key != 'kala-count') {
       $info = serialize($result);
       $data = array(
         'name' => $key,
-        'info' => $info,
+        'kala_migrate' => $info,
       );
-      // Is there a way to write this outsideof the foreach?
+      // Is there a way to write this outside of the foreach?
       drupal_write_record('system', $data, 'name');
     }
   }
@@ -249,7 +255,7 @@ function _kala_migrate_get_between($content, $start, $end) {
  */
 function _kala_migrate_get_status_link($help) {
   // Run href and return it properly formatted.
-  $link = _kala_migrate_get_between($help, '<a href="', '">');
+  $link = _kala_migrate_get_between($help, '<a href="', '"');
   return !empty($link) ? 'http://www.drupal.org' . $link : '';
 }
 

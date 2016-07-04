@@ -1,241 +1,8 @@
 <?php
 /**
  * @file
- * Kala Migrate and module settings UI.
+ * Kala Migrate Module Status Tab UI & Functions.
  */
-
-/**
- * Info Page Callback.
- */
-function kala_migrate_info() {
-  $html  = '<h2>' . t('Kala Migrate Options') . '</h2>';
-  $html .= '<ol>';
-  $html .= '<li>' . t('<b>EXPORT CSV:</b> Export all structural and architectural items for the site into multiple csv\'s contained in ZIP file.') . '</li>';
-  $html .= '<li>' . t('<b>MODULES STATUS:</b> Module list for exporting to D8.') . '</li>';
-  $html .= '</ol>';
-
-  return array('#markup' => $html);
-}
-
-/**
- * CSV Exports Form / Page Callback.
- */
-function kala_migrate_settings_form() {
-
-  $form['ct'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Content Based Items'),
-  );
-
-  $form['ct']['content_types'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Get all Content Types and their data (includes some field data)'),
-    '#default_value' => 1,
-  );
-
-  $form['ct']['fields'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Get full Fields data (more detailed)'),
-    '#default_value' => 1,
-  );
-
-  $form['tx'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Taxonomy Based Items'),
-  );
-
-  $form['tx']['vocab'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Get all of the Taxonomy Vocabulary Settings?'),
-    '#default_value' => 1,
-  );
-
-  $form['ps'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Panels Based Items'),
-  );
-
-  if (module_exists('page_manager')) {
-    $form['ps']['pm_pages'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Get all of the Page Manager Pages and their Settings?'),
-      '#default_value' => 1,
-    );
-  }
-
-  if (module_exists('panelizer')) {
-    $form['ps']['pzr'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Get a list of Panelizer Entities.'),
-      '#default_value' => 1,
-    );
-  }
-
-  if (module_exists('fieldable_panels_panes')) {
-    $form['ps']['fpp'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Get all of Fieldable Panels Panes?'),
-      '#default_value' => 1,
-    );
-  }
-
-  if (module_exists('panels_mini')) {
-    $form['ps']['mini'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Get all of the Mini Panels and their Settings?'),
-      '#default_value' => 1,
-    );
-  }
-
-  $form['is'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Image Based Items'),
-  );
-
-  $form['is']['image_styles'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Get all Image Styles and Settings?'),
-    '#default_value' => 1,
-  );
-
-  $form['vs'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Views Based Items'),
-  );
-
-  $form['vs']['views'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Get all Views and their Settings?'),
-    '#default_value' => 1,
-  );
-
-  $form['am'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Admin Based Items'),
-  );
-
-  if (module_exists('features')) {
-    $form['am']['feat'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Get all of the Features and their Settings?'),
-      '#default_value' => 1,
-    );
-  }
-
-  $form['am']['menus'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Get all of the Menu Settings?'),
-    '#default_value' => 1,
-  );
-
-  $form['am']['roles'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Get all of the User Roles?'),
-    '#default_value' => 1,
-  );
-
-  if (module_exists('redirect')) {
-    $form['am']['redirect'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Get all of the Redirects?'),
-      '#default_value' => 1,
-    );
-  }
-
-  $form['#submit'][] = 'kala_migrate_settings_form_submit';
-
-  return system_settings_form($form);
-}
-
-/**
- * Submit handler for csv exports form.
- */
-function kala_migrate_settings_form_submit($form, &$form_state) {
-  $files = array();
-  $values = $form_state['values'];
-
-  // The Content Type & Fields Settings.
-  if ($values['content_types']) {
-    $files[] = _kala_migrate_content_types('content-types.csv');
-  }
-
-  // The Full Fields Settings.
-  if ($values['fields']) {
-    $files[] = _kala_migrate_fields('fields.csv');
-  }
-
-  // The Taxonomy Vocabulary Settings.
-  if ($values['vocab']) {
-    $files[] = _kala_migrate_vocab('vocab.csv');
-  }
-
-  // The Page Manager Pages.
-  if (module_exists('page_manager')) {
-    if ($values['pm_pages']) {
-      $files[] = _kala_migrate_pm_pages('page-manager-pages.csv');
-    }
-  }
-
-  if (module_exists('panelizer')) {
-    if ($values['pzr']) {
-      $files[] = _kala_migrate_panelizer('panelizer.csv');
-    }
-  }
-
-  // The FPP Items.
-  if (module_exists('fieldable_panels_panes')) {
-    if ($values['fpp']) {
-      $files[] = _kala_migrate_fpp('fieldable-panels-panes.csv');
-    }
-  }
-
-  if (module_exists('panels_mini')) {
-    if ($values['mini']) {
-      $files[] = _kala_migrate_mini_panels('mini-panels.csv');
-    }
-  }
-
-  // The Image Styles & Settings.
-  if ($values['image_styles']) {
-    $files[] = _kala_migrate_image_styles('image-styles.csv');
-  }
-
-  // The Views Settings.
-  if ($values['views']) {
-    $files[] = _kala_migrate_views('views.csv');
-  }
-
-  if (module_exists('features')) {
-    if ($values['feat']) {
-      $files[] = _kala_migrate_features('features.csv');
-    }
-  }
-
-  // The Menus Settings.
-  if ($values['menus']) {
-    $files[] = _kala_migrate_menus('menus.csv');
-  }
-
-  // The Menus Settings.
-  if ($values['roles']) {
-    $files[] = _kala_migrate_user_roles('user-roles.csv');
-  }
-
-  // The Redirect Settings.
-  if (module_exists('redirect')) {
-    if ($values['redirect']) {
-      $files[] = _kala_migrate_redirects('redirects.csv');
-    }
-  }
-
-  // If there are files, lets do this!
-  if (count($files) > 0) {
-    _kala_migrate_create_zip($files);
-  }
-
-  // Get to the chopper!
-  exit;
-}
 
 /**
  * Module Export Page Callback.
@@ -253,18 +20,18 @@ function kala_migrate_module_page() {
 
   // Filter the module respectively for happy table factoring.
   foreach ($modules as $module) {
-    switch ($module->info['module-type']) {
+    switch ($module->kala_migrate['module-type']) {
       case 'Contrib':
-        $contrib[] = _kala_migrate_module_filter($module->name, $module->info);
+        $contrib[] = _kala_migrate_module_filter($module->name, $module->kala_migrate);
         break;
       case 'Core':
-        $core[] = _kala_migrate_module_filter($module->info['module-type'], $module->info);
+        $core[] = _kala_migrate_module_filter($module->kala_migrate['module-type'], $module->kala_migrate);
         break;
       case 'Custom':
-        $custom[] = _kala_migrate_module_filter($module->info['module-type'], $module->info);
+        $custom[] = _kala_migrate_module_filter($module->kala_migrate['module-type'], $module->kala_migrate);
         break;
       case 'Feature':
-        $features[] = _kala_migrate_module_filter($module->info['module-type'], $module->info);
+        $features[] = _kala_migrate_module_filter($module->kala_migrate['module-type'], $module->kala_migrate);
         break;
     }
   }
@@ -325,12 +92,28 @@ function kala_migrate_module_form() {
  * Submit handler for csv exports form.
  */
 function kala_migrate_module_form_submit() {
+  // Fill in table initially and after the fact if need be.
+  $sql = 'SELECT name, info, kala_migrate from {system} WHERE type = :type';
+  $query = db_query($sql, array(':type' => 'module'));
+
+  // Set up insert if need be and fill in the fields.
+  foreach ($query->fetchAll() as $record) {
+    if (!isset($record->kala_migrate)) {
+      $data = array(
+        'name' => $record->name,
+        'kala_migrate' => $record->info,
+      );
+      // Is there a way to write this outside of the foreach?
+      drupal_write_record('system', $data, 'name');
+    }
+  }
+
   // Grab filtered enabled modules list.
   $modules = _kala_migrate_get_modules();
 
   foreach ($modules as $module) {
-    if (!$module->info['skip']) {
-      $operations[] = array('kala_migrate_batch', array($module->name, $module->info));
+    if (!$module->kala_migrate['skip']) {
+      $operations[] = array('kala_migrate_batch', array($module->name, $module->kala_migrate));
     }
   }
 
@@ -352,15 +135,15 @@ function kala_migrate_module_form_submit() {
  *   Modules list.
  */
 function _kala_migrate_get_modules() {
-  // Grab only active modules.
-  $sql = 'SELECT name,info from {system} WHERE type = :type AND status = :status ORDER BY name ASC';
+  // Now grab only active modules.
+  $sql = 'SELECT name, kala_migrate from {system} WHERE type = :type AND status = :status ORDER BY name ASC';
   $query = db_query($sql, array(':type' => 'module', ':status' => 1));
 
   $modules = array();
   // Go through and remove broken project and other non used things.
   foreach ($query->fetchAll() as $module) {
-    if (isset($module->info)) {
-      $info = unserialize($module->info);
+    if (isset($module->kala_migrate)) {
+      $info = unserialize($module->kala_migrate);
       $output = new stdClass();
       if (isset($info['project']) && !isset($info['features'])) {
         $info['module-type'] = 'Contrib';
@@ -375,11 +158,11 @@ function _kala_migrate_get_modules() {
         }
         // Set the object back up.
         $output->name = $module->name;
-        $output->info = $info;
+        $output->kala_migrate = $info;
       }
       else {
         // Add in special project info for core for later use.
-        $info = unserialize($module->info);
+        $info = unserialize($module->kala_migrate);
         if (isset($info['package']) && $info['package'] == 'Core') {
           $info['module-type'] = 'Core';
           $info['skip'] = FALSE;
@@ -394,7 +177,7 @@ function _kala_migrate_get_modules() {
         }
         // Set the object back up.
         $output->name = $info['module-type'];
-        $output->info = $info;
+        $output->kala_migrate = $info;
       }
       $modules[] = $output;
     }
@@ -418,7 +201,7 @@ function _kala_migrate_get_modules() {
 function _kala_migrate_module_filter($name, $info) {
   $output = new stdClass();
   $output->name = $name;
-  $output->info = $info;
+  $output->kala_migrate = $info;
   return $output;
 }
 
@@ -472,7 +255,7 @@ function _kala_migrate_generate_table($modules, $type) {
   // Go through and lets do this.
   foreach ($modules as $module) {
     // Set info to var for easier using.
-    $info = $module->info;
+    $info = $module->kala_migrate;
 
     // Go through and grab status for class.
     $class = _kala_migrate_css_class($info, $type);
