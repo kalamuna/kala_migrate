@@ -87,7 +87,7 @@ function kala_migrate_batch($name, $blob, &$context) {
             $blob['drupal8issue'] = !empty($link) ? $link : '';
           }
           // Renamed or depreciated.
-          if (stripos($help, 'module has been renamed or deprecated') !== FALSE) {
+          elseif (stripos($help, 'module has been renamed or deprecated') !== FALSE) {
             $blob['drupal8status'] = 'RENAMED OR DEPRECIATED';
             $blob['drupal8ver'] = 'N/A';
             $link = _kala_migrate_get_status_link($help);
