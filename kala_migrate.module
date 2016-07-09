@@ -42,23 +42,32 @@ function kala_migrate_menu() {
   $items['admin/config/development/kala_migrate/info'] = array(
     'title' => t('Info'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => -3,
+    'weight' => -4,
   );
 
   $items['admin/config/development/kala_migrate/export'] = array(
     'title' => t('CSV Exports'),
     'type' => MENU_LOCAL_TASK,
-    'weight' => -2,
+    'weight' => -3,
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('kala_migrate_settings_form'),
+    'page arguments' => array('kala_migrate_csv_page_form'),
     'access arguments' => array('administer kala migrate'),
   );
 
   $items['admin/config/development/kala_migrate/module'] = array(
     'title' => t('Module Status'),
     'type' => MENU_LOCAL_TASK,
-    'weight' => -1,
+    'weight' => -2,
     'page callback' => 'kala_migrate_module_page',
+    'access arguments' => array('administer kala migrate'),
+  );
+
+  $items['admin/config/development/kala_migrate/files'] = array(
+    'title' => t('File List'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => -1,
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('kala_migrate_file_page_form'),
     'access arguments' => array('administer kala migrate'),
   );
 
@@ -69,8 +78,9 @@ function kala_migrate_menu() {
  * Implements hook_form_alter().
  */
 function kala_migrate_form_alter(&$form, &$form_state, $form_id) {
-  // We have to change the submit button text in the HFA.
-  if ($form_id == 'kala_migrate_settings_form') {
+  if ($form_id == 'kala_migrate_csv_page_form' ||
+      $form_id == 'kala_migrate_file_page_form') {
+    // We have to change the submit button text for a config form in the HFA.
     $form['actions']['submit']['#value'] = 'Download ZIP';
   }
 }

@@ -7,7 +7,7 @@
 /**
  * CSV Exports Form / Page Callback.
  */
-function kala_migrate_settings_form() {
+function kala_migrate_csv_page_form() {
 
   $form['ct'] = array(
     '#type' => 'fieldset',
@@ -129,7 +129,7 @@ function kala_migrate_settings_form() {
     );
   }
 
-  $form['#submit'][] = 'kala_migrate_settings_form_submit';
+  $form['#submit'][] = 'kala_migrate_csv_page_form_submit';
 
   return system_settings_form($form);
 }
@@ -137,7 +137,7 @@ function kala_migrate_settings_form() {
 /**
  * Submit handler for csv exports form.
  */
-function kala_migrate_settings_form_submit($form, &$form_state) {
+function kala_migrate_csv_page_form_submit($form, &$form_state) {
   $files = array();
   $values = $form_state['values'];
 

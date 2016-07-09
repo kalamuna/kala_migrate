@@ -113,7 +113,7 @@ function kala_migrate_module_form_submit() {
 
   foreach ($modules as $module) {
     if (!$module->kala_migrate['skip']) {
-      $operations[] = array('kala_migrate_batch', array($module->name, $module->kala_migrate));
+      $operations[] = array('kala_migrate_batch_module', array($module->name, $module->kala_migrate));
     }
   }
 
@@ -121,7 +121,7 @@ function kala_migrate_module_form_submit() {
   $batch = array(
     'title' => t('Assimilating...'),
     'operations' => $operations,
-    'finished' => 'kala_migrate_batch_finished',
+    'finished' => 'kala_migrate_batch_module_finished',
   );
 
   // Engage.

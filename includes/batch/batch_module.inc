@@ -7,7 +7,7 @@
 /**
  * Batch function for processing contrib and core modules.
  */
-function kala_migrate_batch($name, $blob, &$context) {
+function kala_migrate_batch_module($name, $blob, &$context) {
   // Update our progress information.
   if (!isset($context['sandbox']['progress'])) {
     $context['sandbox']['progress'] = 0;
@@ -157,7 +157,7 @@ function kala_migrate_batch($name, $blob, &$context) {
 /**
  * Batch finished function.
  */
-function kala_migrate_batch_finished($success, $results, $operations) {
+function kala_migrate_batch_module_finished($success, $results, $operations) {
   // go through success and grab what we need.
   $items = array();
   if ($success) {
