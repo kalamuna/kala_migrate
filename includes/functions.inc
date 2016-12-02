@@ -45,9 +45,14 @@ function _kala_migrate_pathauto_overidden_pattern($machine_name, $default_patter
   // Set the Variable Name to use.
   $variable = 'pathauto_node_' . $machine_name . '_pattern';
 
-  // Return the approproate pattern,
-  return empty(variable_get($variable, '')) ?
-         $default_pattern : variable_get($variable, '');
+  // Return the appropriate pattern
+  if (empty(variable_get($variable, '')) {
+    return $default_pattern;
+  }
+  else {
+    $pattern = variable_get($variable, '');
+    return $pattern;
+  }
 }
 
 /**
