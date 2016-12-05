@@ -1,6 +1,6 @@
 # Kala Migrate
 
-** This module only works if you can write to sites/all/modules.  I would suggest just using it locally **
+**This module only works if you can write to sites/all/modules.  I would suggest just using it locally**
 
 Help with reporting of items that need to be migrated in a Drupal 7 to Drupal 8 upgrade.
 
