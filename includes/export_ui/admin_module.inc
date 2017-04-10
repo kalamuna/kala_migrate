@@ -65,14 +65,14 @@ function kala_migrate_module_page() {
 
   $page = array(
     '#prefix' => '<center>',
-    'form' => $form,
+    //'form' => $form,
     'table' => array(
       '#markup' => $tables,
     ),
     '#suffix' => '</center>',
   );
 
-  return $page;
+  return drupal_render($page);
 }
 
 /**
@@ -97,7 +97,7 @@ function kala_migrate_module_form_submit() {
   $query = db_query($sql, array(':type' => 'module'));
 
   // Set up insert if need be and fill in the fields.
-  foreach ($query->fetchAll() as $record) {
+  while ($record = db_fetch_object($query)) {
     if (!isset($record->kala_migrate)) {
       $data = array(
         'name' => $record->name,
@@ -136,12 +136,12 @@ function kala_migrate_module_form_submit() {
  */
 function _kala_migrate_get_modules() {
   // Now grab only active modules.
-  $sql = 'SELECT name, kala_migrate from {system} WHERE type = :type AND status = :status ORDER BY name ASC';
-  $query = db_query($sql, array(':type' => 'module', ':status' => 1));
+  $sql = "SELECT name, kala_migrate from {system} WHERE type = '%s' AND status = '%s' ORDER BY name ASC";
+  $query = db_query($sql, 'module', 1);
 
   $modules = array();
   // Go through and remove broken project and other non used things.
-  foreach ($query->fetchAll() as $module) {
+  while ($module = db_fetch_object($query)) {
     if (isset($module->kala_migrate)) {
       $info = unserialize($module->kala_migrate);
       $output = new stdClass();

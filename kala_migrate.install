@@ -18,7 +18,9 @@ function kala_migrate_schema_alter(&$schema) {
  * Implements hook_install().
  */
 function kala_migrate_install() {
-  db_add_field('system', 'kala_migrate', array(
+  $ret = array();
+
+  db_add_field($ret, 'system', 'kala_migrate', array(
     'description' => 'A serialized array from the system\'s table info field for manipulation in the kala migrate module.',
     'type' => 'blob',
     'not null' => FALSE,
@@ -37,6 +39,8 @@ function kala_migrate_enable() {
  * Implements hook_uninstall().
  */
 function kala_migrate_uninstall() {
-  db_drop_field('system', 'kala_migrate');
+  $ret = array();
+
+  db_drop_field($ret, 'system', 'kala_migrate');
 }
 
