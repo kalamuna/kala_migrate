@@ -270,13 +270,14 @@ function _kala_migrate_get_status_link($help) {
  */
 function _kala_migrate_grab_version($check) {
   // Grab the downloads section
-  $dloads = stristr($check, '<h3>Downloads</h3>');
+  $dloads = stristr($check, '<div class="view view-drupalorg-project-downloads');
+
   // Look through the table for the version.
-  $tds = explode('<td', $dloads);
-  if (isset($tds[1])) {
-    foreach ($tds as $td) {
+  $divs = explode('<div class="release', $dloads);
+  if (isset($divs[1])) {
+    foreach ($divs as $div) {
       // Grab all releases.
-      $ver_grabs[] = _kala_migrate_get_between($td, 'releases/', '">');
+      $ver_grabs[] = _kala_migrate_get_between($div, 'releases/', '">');
     }
     $ver_grabs = array_filter($ver_grabs);
     // Filter out D8 versions.
@@ -286,7 +287,7 @@ function _kala_migrate_grab_version($check) {
           $vers['dev'] = $ver;
         }
         else {
-          $vers['stable'] = $ver;
+          $vers['stable'] = strstr($ver, '"', TRUE);
         }
       }
     }
